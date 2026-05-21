@@ -2,15 +2,15 @@
 
 namespace App\Domain\Repository;
 
-use App\Domain\Entity\Order;
+use App\Domain\Entity\Invoice;
 
 interface InvoiceRepositoryInterface
 {
-    public function save(Order $order): void;
-    public function findById(string $id): ?Order;
+    public function save(Invoice $invoice): void;
+    public function findById(string $id): ?Invoice;
+    public function findByOrderId(string $orderId): ?Invoice;
     public function findByClientId(string $clientId, int $page, int $limit): array;
     public function countByClientId(string $clientId): int;
     public function findAll(int $page, int $limit): array;
     public function countAll(): int;
-    public function delete(Order $order): void;
 }

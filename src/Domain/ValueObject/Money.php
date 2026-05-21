@@ -2,6 +2,8 @@
 
 namespace App\Domain\ValueObject;
 
+use App\Domain\Exception\InvalidMoneyException;
+
 readonly class Money
 {
     private function __construct(
