@@ -9,7 +9,7 @@ enum InvoiceStatus: string
     case CANCELLED = 'cancelled';
     case OVERDUE   = 'overdue';
 
-    public function getLabel(): string
+    public function label(): string
     {
         return match($this) {
             self::PENDING   => 'Pending payment',

@@ -1,0 +1,125 @@
+<?php
+
+namespace App\Presentation\Controller\Api;
+
+use App\Application\DTO\Request\CreateProductDTO;
+use App\Application\DTO\Request\PaginationDTO;
+use App\Application\DTO\Request\UpdateStockDTO;
+use App\Application\UseCase\Product\CreateProductUseCase;
+use App\Application\UseCase\Product\ListProductsUseCase;
+use App\Application\UseCase\Product\UpdateStockUseCase;
+use App\Domain\Exception\ProductNotFoundException;
+use App\Domain\Model\Repository\ProductRepositoryInterface;
+use App\Presentation\Response\ApiResponse;
+use App\Presentation\Transformer\ResourceTransformer;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+
+#[Route('/api/v1/products', name: 'api_products_')]
+final class ProductController extends AbstractController
+{
+    public function __construct(
+        private readonly CreateProductUseCase       $createProduct,
+        private readonly ListProductsUseCase        $listProducts,
+        private readonly UpdateStockUseCase         $updateStock,
+        private readonly ProductRepositoryInterface $productRepository,
+        private readonly ValidatorInterface $validator
+    ) {}
+
+    #[Route('', name: 'list', methods: ['GET'])]
+    public function list(Request $request): JsonResponse
+    {
+        $pagination = new PaginationDTO(
+            page:  max(1, (int) $request->query->get('page', 1)),
+            limit: min(100, max(1, (int) $request->query->get('limit', 10)))
+        );
+
+        $result = $this->listProducts->execute($pagination);
+
+        return ApiResponse::paginated(
+            items:   ResourceTransformer::collection($result['items'], 'product'),
+            total:   $result['total'],
+            page:    $result['page'],
+            limit:   $result['limit'],
+            message: 'Liste des produits récupérée.'
+        );
+    }
+
+    #[Route('/{id}', name: 'detail', methods: ['GET'])]
+    public function detail(string $id): JsonResponse
+    {
+        $product = $this->productRepository->findById($id);
+
+        if ($product === null) {
+            throw new ProductNotFoundException("Produit introuvable avec l'ID : {$id}");
+        }
+
+        return ApiResponse::success(
+            ResourceTransformer::product($product),
+            'Produit récupéré.'
+        );
+    }
+
+    #[Route('', name: 'create', methods: ['POST'])]
+    public function create(Request $request): JsonResponse
+    {
+        $body = json_decode($request->getContent(), true) ?? [];
+
+        $dto = new CreateProductDTO(
+            name:          $body['name'] ?? '',
+            reference:     $body['reference'] ?? '',
+            description:   $body['description'] ?? '',
+            price:         (float) ($body['price'] ?? 0),
+            stockQuantity: (int) ($body['stock_quantity'] ?? 0),
+            minimumStock:  (int) ($body['minimum_stock'] ?? 5),
+            currency:      $body['currency'] ?? 'MGA'
+        );
+
+        $violations = $this->validator->validate($dto);
+        if (count($violations) > 0) {
+            $errors = [];
+            foreach ($violations as $v) {
+                $errors[$v->getPropertyPath()][] = $v->getMessage();
+            }
+            return ApiResponse::error('Données invalides.', 422, $errors);
+        }
+
+        $product = $this->createProduct->execute($dto);
+
+        return ApiResponse::created(
+            ResourceTransformer::product($product),
+            'Produit créé avec succès.'
+        );
+    }
+
+    #[Route('/{id}/stock', name: 'update_stock', methods: ['PATCH'])]
+    public function updateStock(string $id, Request $request): JsonResponse
+    {
+        $body = json_decode($request->getContent(), true) ?? [];
+
+        $dto = new UpdateStockDTO(
+            productId:  $id,
+            quantity:   (int) ($body['quantity'] ?? 0),
+            operation:  $body['operation'] ?? ''
+        );
+
+        $violations = $this->validator->validate($dto);
+        if (count($violations) > 0) {
+            $errors = [];
+            foreach ($violations as $v) {
+                $errors[$v->getPropertyPath()][] = $v->getMessage();
+            }
+            return ApiResponse::error('Données invalides.', 422, $errors);
+        }
+
+        $product = $this->updateStock->execute($dto);
+
+        return ApiResponse::success(
+            ResourceTransformer::product($product),
+            'Stock mis à jour avec succès.'
+        );
+    }
+}

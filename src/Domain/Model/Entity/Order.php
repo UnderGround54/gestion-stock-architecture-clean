@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domain\Entity;
+namespace App\Domain\Model\Entity;
 
 use App\Domain\Enum\OrderStatus;
 use App\Domain\Exception\OrderException;
@@ -24,14 +24,14 @@ class Order
 
     public function __construct(string $clientId, string $customerNote = '')
     {
-        $this->id          = Uuid::v4()->toRfc4122();
-        $this->number      = $this->generateNumber();
-        $this->clientId    = $clientId;
-        $this->status      = OrderStatus::PENDING;
+        $this->id = Uuid::v4()->toRfc4122();
+        $this->number = $this->generateNumber();
+        $this->clientId = $clientId;
+        $this->status = OrderStatus::PENDING;
         $this->totalAmount = Money::of(0);
         $this->customerNote = $customerNote;
-        $this->createdAt   = new \DateTimeImmutable();
-        $this->updatedAt   = new \DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 
     // --- Règles de gestion ---
@@ -46,7 +46,7 @@ class Order
 
         $this->orderLines[] = $line;
         $this->recalculateTotal();
-        $this->updatedAt    = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 
     public function confirm(): void
@@ -61,7 +61,7 @@ class Order
             throw new OrderException("Impossible de confirmer une commande sans lignes.");
         }
 
-        $this->status    = OrderStatus::CONFIRMED;
+        $this->status = OrderStatus::CONFIRMED;
         $this->updatedAt = new \DateTimeImmutable();
     }
 
@@ -73,7 +73,7 @@ class Order
             );
         }
 
-        $this->status    = OrderStatus::SHIPPED;
+        $this->status = OrderStatus::SHIPPED;
         $this->updatedAt = new \DateTimeImmutable();
     }
 
@@ -83,7 +83,7 @@ class Order
             throw new OrderException("La commande doit être expédiée avant d'être livrée.");
         }
 
-        $this->status    = OrderStatus::DELIVERED;
+        $this->status = OrderStatus::DELIVERED;
         $this->updatedAt = new \DateTimeImmutable();
     }
 
@@ -95,7 +95,7 @@ class Order
             );
         }
 
-        $this->status    = OrderStatus::CANCELLED;
+        $this->status = OrderStatus::CANCELLED;
         $this->updatedAt = new \DateTimeImmutable();
     }
 
@@ -115,13 +115,48 @@ class Order
 
     // --- Getters ---
 
-    public function getId(): string             { return $this->id; }
-    public function getNumber(): string         { return $this->number; }
-    public function getClientId(): string       { return $this->clientId; }
-    public function getStatus(): OrderStatus    { return $this->status; }
-    public function getTotalAmount(): Money     { return $this->totalAmount; }
-    public function getCustomerNote(): string   { return $this->customerNote; }
-    public function getOrderLines(): array      { return $this->orderLines; }
-    public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
-    public function getUpdatedAt(): \DateTimeImmutable { return $this->updatedAt; }
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    public function getNumber(): string
+    {
+        return $this->number;
+    }
+
+    public function getClientId(): string
+    {
+        return $this->clientId;
+    }
+
+    public function getStatus(): OrderStatus
+    {
+        return $this->status;
+    }
+
+    public function getTotalAmount(): Money
+    {
+        return $this->totalAmount;
+    }
+
+    public function getCustomerNote(): string
+    {
+        return $this->customerNote;
+    }
+
+    public function getOrderLines(): array
+    {
+        return $this->orderLines;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getUpdatedAt(): \DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
 }

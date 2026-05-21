@@ -4,14 +4,14 @@ namespace App\Application\UseCase\Order;
 
 use App\Application\DTO\Request\CreateOrderDTO;
 use App\Application\Factory\OrderFactory;
-use App\Domain\Entity\Order;
 use App\Domain\Event\OrderCreatedEvent;
 use App\Domain\Exception\ClientNotFoundException;
 use App\Domain\Exception\InvalidProductException;
 use App\Domain\Exception\ProductNotFoundException;
-use App\Domain\Repository\ClientRepositoryInterface;
-use App\Domain\Repository\OrderRepositoryInterface;
-use App\Domain\Repository\ProductRepositoryInterface;
+use App\Domain\Model\Entity\Order;
+use App\Domain\Model\Repository\ClientRepositoryInterface;
+use App\Domain\Model\Repository\OrderRepositoryInterface;
+use App\Domain\Model\Repository\ProductRepositoryInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 final readonly class CreateOrderUseCase
@@ -29,7 +29,7 @@ final readonly class CreateOrderUseCase
         $client = $this->clientRepository->findById($dto->clientId);
         if ($client === null) {
             throw new ClientNotFoundException(
-                "Client introuvable avec l'ID : {$dto->clientId}"
+                "ClientOrm introuvable avec l'ID : {$dto->clientId}"
             );
         }
 

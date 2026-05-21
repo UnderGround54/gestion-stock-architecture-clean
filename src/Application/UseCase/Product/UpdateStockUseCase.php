@@ -3,10 +3,10 @@
 namespace App\Application\UseCase\Product;
 
 use App\Application\DTO\Request\UpdateStockDTO;
-use App\Domain\Entity\Product;
 use App\Domain\Event\InsufficientStockEvent;
 use App\Domain\Exception\ProductNotFoundException;
-use App\Domain\Repository\ProductRepositoryInterface;
+use App\Domain\Model\Entity\Product;
+use App\Domain\Model\Repository\ProductRepositoryInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 final readonly class UpdateStockUseCase

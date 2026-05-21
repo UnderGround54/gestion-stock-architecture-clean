@@ -43,3 +43,11 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    ##########################################################################
+    # CONTROLLERS — publics pour le routeur Symfony
+    ##########################################################################
+    App\Presentation\Controller\:
+        resource: '../src/Presentation/Controller/'
+        tags: ['controller.service_arguments']
+        public: true

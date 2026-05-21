@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Domain\Repository;
+namespace App\Domain\Model\Repository;
 
-use App\Domain\Entity\Product;
+use App\Domain\Model\Entity\Product;
 
 interface ProductRepositoryInterface
 {
@@ -14,5 +14,4 @@ interface ProductRepositoryInterface
     public function findActive(int $page, int $limit): array;
     public function existsByReference(string $reference, ?string $excludeId = null): bool;
     public function delete(Product $product): void;
-
 }

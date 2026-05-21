@@ -4,9 +4,9 @@ namespace App\Application\Factory;
 
 
 use App\Application\DTO\Request\OrderLineDTO;
-use App\Domain\Entity\Order;
-use App\Domain\Entity\OrderLine;
-use App\Domain\Entity\Product;
+use App\Domain\Model\Entity\Order;
+use App\Domain\Model\Entity\OrderLine;
+use App\Domain\Model\Entity\Product;
 
 final class OrderFactory
 {

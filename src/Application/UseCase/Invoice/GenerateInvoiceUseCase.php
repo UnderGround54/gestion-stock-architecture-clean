@@ -3,13 +3,13 @@
 namespace App\Application\UseCase\Invoice;
 
 use App\Application\Factory\InvoiceFactory;
-use App\Domain\Entity\Invoice;
 use App\Domain\Enum\OrderStatus;
 use App\Domain\Event\InvoiceCreatedEvent;
 use App\Domain\Exception\InvoiceException;
 use App\Domain\Exception\OrderNotFoundException;
-use App\Domain\Repository\InvoiceRepositoryInterface;
-use App\Domain\Repository\OrderRepositoryInterface;
+use App\Domain\Model\Entity\Invoice;
+use App\Domain\Model\Repository\InvoiceRepositoryInterface;
+use App\Domain\Model\Repository\OrderRepositoryInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 final readonly class GenerateInvoiceUseCase

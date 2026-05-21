@@ -1,0 +1,157 @@
+<?php
+
+namespace App\Infrastructure\Persistence\Doctrine\Repository;
+
+use App\Domain\Model\Entity\Client;
+use App\Domain\Model\Repository\ClientRepositoryInterface;
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Exception;
+use Doctrine\DBAL\ParameterType;
+
+final readonly class ClientDoctrineRepository implements ClientRepositoryInterface
+{
+    public function __construct(private Connection $connection) {}
+
+    /**
+     * @throws Exception
+     */
+    public function save(Client $client): void
+    {
+        $exists = $this->connection->fetchOne(
+            'SELECT id FROM clients WHERE id = ?',
+            [$client->getId()]
+        );
+
+        $data = [
+            'id'         => $client->getId(),
+            'last_name'  => $client->getLastName(),
+            'first_name' => $client->getFirstName(),
+            'email'      => $client->getEmail(),
+            'phone'      => $client->getPhone(),
+            'address'    => $client->getAddress(),
+            'is_active'  => (int) $client->isActive(),
+            'updated_at' => $client->getUpdatedAt()->format('Y-m-d H:i:s'),
+        ];
+
+        if ($exists) {
+            $this->connection->update('clients', $data, ['id' => $client->getId()]);
+        } else {
+            $data['created_at'] = $client->getCreatedAt()->format('Y-m-d H:i:s');
+            $this->connection->insert('clients', $data);
+        }
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function findById(string $id): ?Client
+    {
+        $row = $this->connection->fetchAssociative(
+            'SELECT * FROM clients WHERE id = ?',
+            [$id]
+        );
+
+        return $row ? $this->hydrate($row) : null;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function findByEmail(string $email): ?Client
+    {
+        $row = $this->connection->fetchAssociative(
+            'SELECT * FROM clients WHERE email = ?',
+            [$email]
+        );
+
+        return $row ? $this->hydrate($row) : null;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function findAll(int $page, int $limit): array
+    {
+        try {
+            $offset = ($page - 1) * $limit;
+            $rows   = $this->connection->fetchAllAssociative(
+                'SELECT * FROM clients ORDER BY created_at DESC LIMIT ? OFFSET ?',
+                [$limit, $offset],
+                [
+                    ParameterType::INTEGER,
+                    ParameterType::INTEGER,
+                ]
+            );
+        } catch (Exception $e) {
+            dd($e->getMessage());
+        }
+
+
+        return array_map(fn(array $row) => $this->hydrate($row), $rows);
+    }
+
+    public function countAll(): int
+    {
+        return (int) $this->connection->fetchOne('SELECT COUNT(*) FROM clients');
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function existsByEmail(string $email, ?string $excludeId = null): bool
+    {
+        $sql    = 'SELECT COUNT(*) FROM clients WHERE email = ?';
+        $params = [$email];
+
+        if ($excludeId !== null) {
+            $sql      .= ' AND id != ?';
+            $params[]  = $excludeId;
+        }
+
+        return (int) $this->connection->fetchOne($sql, $params) > 0;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function delete(Client $client): void
+    {
+        $this->connection->delete('clients', ['id' => $client->getId()]);
+    }
+
+    /**
+     * @throws \Exception
+     */
+    private function hydrate(array $row): Client
+    {
+        $client = new Client(
+            $row['last_name'],
+            $row['first_name'],
+            $row['email'],
+            $row['phone'],
+            $row['address']
+        );
+
+        $ref = new \ReflectionClass($client);
+
+        $idProp = $ref->getProperty('id');
+        $idProp->setAccessible(true);
+        $idProp->setValue($client, $row['id']);
+
+        $createdProp = $ref->getProperty('createdAt');
+        $createdProp->setAccessible(true);
+        $createdProp->setValue($client, new \DateTimeImmutable($row['created_at']));
+
+        $updatedProp = $ref->getProperty('updatedAt');
+        $updatedProp->setAccessible(true);
+        $updatedProp->setValue($client, new \DateTimeImmutable($row['updated_at']));
+
+        if (!(bool) $row['is_active']) {
+            $activeProp = $ref->getProperty('isActive');
+            $activeProp->setAccessible(true);
+            $activeProp->setValue($client, false);
+        }
+
+        return $client;
+    }
+}

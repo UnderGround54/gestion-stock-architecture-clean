@@ -3,9 +3,9 @@
 namespace App\Application\UseCase\Product;
 
 use App\Application\DTO\Request\CreateProductDTO;
-use App\Domain\Entity\Product;
 use App\Domain\Exception\InvalidProductException;
-use App\Domain\Repository\ProductRepositoryInterface;
+use App\Domain\Model\Entity\Product;
+use App\Domain\Model\Repository\ProductRepositoryInterface;
 use App\Domain\ValueObject\Money;
 
 final readonly class CreateProductUseCase

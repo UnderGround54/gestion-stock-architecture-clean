@@ -3,8 +3,8 @@
 namespace App\Application\Factory;
 
 
-use App\Domain\Entity\Invoice;
-use App\Domain\Entity\Order;
+use App\Domain\Model\Entity\Invoice;
+use App\Domain\Model\Entity\Order;
 
 final class InvoiceFactory
 {

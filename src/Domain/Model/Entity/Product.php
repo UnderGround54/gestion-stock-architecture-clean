@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domain\Entity;
+namespace App\Domain\Model\Entity;
 
 use App\Domain\Exception\InsufficientStockException;
 use App\Domain\Exception\InvalidProductException;
@@ -24,22 +24,23 @@ class Product
         string $name,
         string $reference,
         string $description,
-        Money $price,
-        int $stockQuantity,
-        int $minimumStock = 5
-    ) {
+        Money  $price,
+        int    $stockQuantity,
+        int    $minimumStock = 5
+    )
+    {
         $this->validate($name, $reference, $stockQuantity);
 
-        $this->id            = Uuid::v4()->toRfc4122();
-        $this->name          = $name;
-        $this->reference     = $reference;
-        $this->description   = $description;
-        $this->price         = $price;
+        $this->id = Uuid::v4()->toRfc4122();
+        $this->name = $name;
+        $this->reference = $reference;
+        $this->description = $description;
+        $this->price = $price;
         $this->stockQuantity = $stockQuantity;
-        $this->minimumStock  = $minimumStock;
-        $this->active        = true;
-        $this->createdAt     = new \DateTimeImmutable();
-        $this->updatedAt     = new \DateTimeImmutable();
+        $this->minimumStock = $minimumStock;
+        $this->active = true;
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 
     // --- Règles de gestion (Business Rules) ---
@@ -88,7 +89,7 @@ class Product
 
     public function deactivate(): void
     {
-        $this->active    = false;
+        $this->active = false;
         $this->updatedAt = new \DateTimeImmutable();
     }
 

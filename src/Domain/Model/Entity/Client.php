@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domain\Entity;
+namespace App\Domain\Model\Entity;
 
 use App\Domain\Exception\ClientInvalidException;
 use Symfony\Component\Uid\Uuid;
@@ -26,16 +26,17 @@ class Client
         string $email,
         string $phone,
         string $address
-    ) {
+    )
+    {
         $this->validate($lastName, $firstName, $email);
 
-        $this->id        = Uuid::v4()->toRfc4122();
-        $this->lastName  = $lastName;
+        $this->id = Uuid::v4()->toRfc4122();
+        $this->lastName = $lastName;
         $this->firstName = $firstName;
-        $this->email     = $email;
-        $this->phone     = $phone;
-        $this->address   = $address;
-        $this->isActive  = true;
+        $this->email = $email;
+        $this->phone = $phone;
+        $this->address = $address;
+        $this->isActive = true;
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
     }
@@ -50,16 +51,16 @@ class Client
     public function update(string $lastName, string $firstName, string $phone, string $address): void
     {
         $this->validate($lastName, $firstName, $this->email);
-        $this->lastName  = $lastName;
+        $this->lastName = $lastName;
         $this->firstName = $firstName;
-        $this->phone     = $phone;
-        $this->address   = $address;
+        $this->phone = $phone;
+        $this->address = $address;
         $this->updatedAt = new \DateTimeImmutable();
     }
 
     public function disable(): void
     {
-        $this->isActive  = false;
+        $this->isActive = false;
         $this->updatedAt = new \DateTimeImmutable();
     }
 
@@ -78,13 +79,48 @@ class Client
 
     // --- Getters ---
 
-    public function getId(): string             { return $this->id; }
-    public function getLastName(): string       { return $this->lastName; }
-    public function getFirstName(): string      { return $this->firstName; }
-    public function getEmail(): string          { return $this->email; }
-    public function getPhone(): string          { return $this->phone; }
-    public function getAddress(): string        { return $this->address; }
-    public function isActive(): bool            { return $this->isActive; }
-    public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
-    public function getUpdatedAt(): \DateTimeImmutable { return $this->updatedAt; }
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    public function getLastName(): string
+    {
+        return $this->lastName;
+    }
+
+    public function getFirstName(): string
+    {
+        return $this->firstName;
+    }
+
+    public function getEmail(): string
+    {
+        return $this->email;
+    }
+
+    public function getPhone(): string
+    {
+        return $this->phone;
+    }
+
+    public function getAddress(): string
+    {
+        return $this->address;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->isActive;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getUpdatedAt(): \DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
 }

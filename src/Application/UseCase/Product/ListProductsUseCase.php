@@ -3,7 +3,7 @@
 namespace App\Application\UseCase\Product;
 
 use App\Application\DTO\Request\PaginationDTO;
-use App\Domain\Repository\ProductRepositoryInterface;
+use App\Domain\Model\Repository\ProductRepositoryInterface;
 
 
 final readonly class ListProductsUseCase

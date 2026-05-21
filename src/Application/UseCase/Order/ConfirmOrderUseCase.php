@@ -2,10 +2,10 @@
 
 namespace App\Application\UseCase\Order;
 
-use App\Domain\Entity\Order;
 use App\Domain\Event\OrderConfirmedEvent;
 use App\Domain\Exception\OrderNotFoundException;
-use App\Domain\Repository\OrderRepositoryInterface;
+use App\Domain\Model\Entity\Order;
+use App\Domain\Model\Repository\OrderRepositoryInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 
