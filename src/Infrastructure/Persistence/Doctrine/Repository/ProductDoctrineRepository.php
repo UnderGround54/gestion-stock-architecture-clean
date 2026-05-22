@@ -10,20 +10,20 @@ use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\ParameterType;
 use ReflectionException;
 
-final readonly class ProductDoctrineRepository implements ProductRepositoryInterface
+final readonly class ProductDoctrineRepository extends AbstractDoctrineRepository implements ProductRepositoryInterface
 {
-    public function __construct(private Connection $connection) {}
+    public function __construct(
+        Connection $connection,
+        private ReflectionHydrator $hydrator,
+    ) {
+        parent::__construct($connection);
+    }
 
     /**
      * @throws Exception
      */
     public function save(Product $product): void
     {
-        $exists = $this->connection->fetchOne(
-            'SELECT id FROM products WHERE id = ?',
-            [$product->getId()]
-        );
-
         $data = [
             'id'             => $product->getId(),
             'name'           => $product->getName(),
@@ -37,12 +37,11 @@ final readonly class ProductDoctrineRepository implements ProductRepositoryInter
             'updated_at'     => $product->getUpdatedAt()->format('Y-m-d H:i:s'),
         ];
 
-        if ($exists) {
-            $this->connection->update('products', $data, ['id' => $product->getId()]);
-        } else {
+        if (!$this->connection->fetchOne('SELECT id FROM products WHERE id = ?', [$product->getId()])) {
             $data['created_at'] = $product->getCreatedAt()->format('Y-m-d H:i:s');
-            $this->connection->insert('products', $data);
         }
+
+        $this->upsert('products', $data, $product->getId());
     }
 
     /**
@@ -134,12 +133,10 @@ final readonly class ProductDoctrineRepository implements ProductRepositoryInter
     }
 
     /**
-     * @throws ReflectionException
      * @throws \Exception
      */
     private function hydrate(array $row): Product
     {
-        // Reconstitution de l'entité Domain depuis les données brutes
         $product = new Product(
             name:          $row['name'],
             reference:     $row['reference'],
@@ -149,27 +146,17 @@ final readonly class ProductDoctrineRepository implements ProductRepositoryInter
             minimumStock:  (int) $row['minimum_stock']
         );
 
-        // Injection de l'ID persisté via réflexion (entité sans setter d'ID)
-        $ref = new \ReflectionClass($product);
-
-        $idProp = $ref->getProperty('id');
-        $idProp->setAccessible(true);
-        $idProp->setValue($product, $row['id']);
-
-        $createdProp = $ref->getProperty('createdAt');
-        $createdProp->setAccessible(true);
-        $createdProp->setValue($product, new \DateTimeImmutable($row['created_at']));
-
-        $updatedProp = $ref->getProperty('updatedAt');
-        $updatedProp->setAccessible(true);
-        $updatedProp->setValue($product, new \DateTimeImmutable($row['updated_at']));
+        $this->hydrator->setMany($product, [
+            'id'        => $row['id'],
+            'createdAt' => new \DateTimeImmutable($row['created_at']),
+            'updatedAt' => new \DateTimeImmutable($row['updated_at']),
+        ]);
 
         if (!(bool) $row['is_active']) {
-            $activeProp = $ref->getProperty('isActive');
-            $activeProp->setAccessible(true);
-            $activeProp->setValue($product, false);
+            $this->hydrator->set($product, 'isActive', false);
         }
 
         return $product;
     }
 }
+

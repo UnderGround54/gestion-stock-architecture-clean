@@ -8,20 +8,20 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\ParameterType;
 
-final readonly class ClientDoctrineRepository implements ClientRepositoryInterface
+final readonly class ClientDoctrineRepository extends AbstractDoctrineRepository implements ClientRepositoryInterface
 {
-    public function __construct(private Connection $connection) {}
+    public function __construct(
+        Connection $connection,
+        private ReflectionHydrator $hydrator,
+    ) {
+        parent::__construct($connection);
+    }
 
     /**
      * @throws Exception
      */
     public function save(Client $client): void
     {
-        $exists = $this->connection->fetchOne(
-            'SELECT id FROM clients WHERE id = ?',
-            [$client->getId()]
-        );
-
         $data = [
             'id'         => $client->getId(),
             'last_name'  => $client->getLastName(),
@@ -33,12 +33,12 @@ final readonly class ClientDoctrineRepository implements ClientRepositoryInterfa
             'updated_at' => $client->getUpdatedAt()->format('Y-m-d H:i:s'),
         ];
 
-        if ($exists) {
-            $this->connection->update('clients', $data, ['id' => $client->getId()]);
-        } else {
+        // created_at is only written on INSERT; upsert() handles the branching
+        if (!$this->connection->fetchOne('SELECT id FROM clients WHERE id = ?', [$client->getId()])) {
             $data['created_at'] = $client->getCreatedAt()->format('Y-m-d H:i:s');
-            $this->connection->insert('clients', $data);
         }
+
+        $this->upsert('clients', $data, $client->getId());
     }
 
     /**
@@ -69,27 +69,23 @@ final readonly class ClientDoctrineRepository implements ClientRepositoryInterfa
 
     /**
      * @throws Exception
+     * @throws \Exception
      */
     public function findAll(int $page, int $limit): array
     {
-        try {
-            $offset = ($page - 1) * $limit;
-            $rows   = $this->connection->fetchAllAssociative(
-                'SELECT * FROM clients ORDER BY created_at DESC LIMIT ? OFFSET ?',
-                [$limit, $offset],
-                [
-                    ParameterType::INTEGER,
-                    ParameterType::INTEGER,
-                ]
-            );
-        } catch (Exception $e) {
-            dd($e->getMessage());
-        }
-
+        $offset = ($page - 1) * $limit;
+        $rows   = $this->connection->fetchAllAssociative(
+            'SELECT * FROM clients ORDER BY created_at DESC LIMIT ? OFFSET ?',
+            [$limit, $offset],
+            [ParameterType::INTEGER, ParameterType::INTEGER]
+        );
 
         return array_map(fn(array $row) => $this->hydrate($row), $rows);
     }
 
+    /**
+     * @throws Exception
+     */
     public function countAll(): int
     {
         return (int) $this->connection->fetchOne('SELECT COUNT(*) FROM clients');
@@ -132,24 +128,14 @@ final readonly class ClientDoctrineRepository implements ClientRepositoryInterfa
             $row['address']
         );
 
-        $ref = new \ReflectionClass($client);
-
-        $idProp = $ref->getProperty('id');
-        $idProp->setAccessible(true);
-        $idProp->setValue($client, $row['id']);
-
-        $createdProp = $ref->getProperty('createdAt');
-        $createdProp->setAccessible(true);
-        $createdProp->setValue($client, new \DateTimeImmutable($row['created_at']));
-
-        $updatedProp = $ref->getProperty('updatedAt');
-        $updatedProp->setAccessible(true);
-        $updatedProp->setValue($client, new \DateTimeImmutable($row['updated_at']));
+        $this->hydrator->setMany($client, [
+            'id'        => $row['id'],
+            'createdAt' => new \DateTimeImmutable($row['created_at']),
+            'updatedAt' => new \DateTimeImmutable($row['updated_at']),
+        ]);
 
         if (!(bool) $row['is_active']) {
-            $activeProp = $ref->getProperty('isActive');
-            $activeProp->setAccessible(true);
-            $activeProp->setValue($client, false);
+            $this->hydrator->set($client, 'isActive', false);
         }
 
         return $client;

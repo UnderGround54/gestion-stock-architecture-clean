@@ -10,20 +10,20 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\ParameterType;
 
-final readonly class InvoiceDoctrineRepository implements InvoiceRepositoryInterface
+final readonly class InvoiceDoctrineRepository extends AbstractDoctrineRepository implements InvoiceRepositoryInterface
 {
-    public function __construct(private Connection $connection) {}
+    public function __construct(
+        Connection $connection,
+        private ReflectionHydrator $hydrator,
+    ) {
+        parent::__construct($connection);
+    }
 
     /**
      * @throws Exception
      */
     public function save(Invoice $invoice): void
     {
-        $exists = $this->connection->fetchOne(
-            'SELECT id FROM invoices WHERE id = ?',
-            [$invoice->getId()]
-        );
-
         $data = [
             'id'              => $invoice->getId(),
             'number'          => $invoice->getNumber(),
@@ -40,12 +40,11 @@ final readonly class InvoiceDoctrineRepository implements InvoiceRepositoryInter
             'updated_at'      => $invoice->getUpdatedAt()->format('Y-m-d H:i:s'),
         ];
 
-        if ($exists) {
-            $this->connection->update('invoices', $data, ['id' => $invoice->getId()]);
-        } else {
+        if (!$this->connection->fetchOne('SELECT id FROM invoices WHERE id = ?', [$invoice->getId()])) {
             $data['created_at'] = $invoice->getCreatedAt()->format('Y-m-d H:i:s');
-            $this->connection->insert('invoices', $data);
         }
+
+        $this->upsert('invoices', $data, $invoice->getId());
     }
 
     /**
@@ -83,11 +82,7 @@ final readonly class InvoiceDoctrineRepository implements InvoiceRepositoryInter
         $rows   = $this->connection->fetchAllAssociative(
             'SELECT * FROM invoices WHERE client_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?',
             [$clientId, $limit, $offset],
-            [
-                ParameterType::STRING,
-                ParameterType::INTEGER,
-                ParameterType::INTEGER
-            ]
+            [ParameterType::STRING, ParameterType::INTEGER, ParameterType::INTEGER]
         );
 
         return array_map(fn($row) => $this->hydrate($row), $rows);
@@ -113,10 +108,7 @@ final readonly class InvoiceDoctrineRepository implements InvoiceRepositoryInter
         $rows   = $this->connection->fetchAllAssociative(
             'SELECT * FROM invoices ORDER BY created_at DESC LIMIT ? OFFSET ?',
             [$limit, $offset],
-            [
-                ParameterType::INTEGER,
-                ParameterType::INTEGER,
-            ]
+            [ParameterType::INTEGER, ParameterType::INTEGER]
         );
 
         return array_map(fn($row) => $this->hydrate($row), $rows);
@@ -142,19 +134,17 @@ final readonly class InvoiceDoctrineRepository implements InvoiceRepositoryInter
             (float) $row['tax_rate']
         );
 
-        $ref = new \ReflectionClass($invoice);
-
-        $ref->getProperty('id')->setValue($invoice, $row['id']);
-        $ref->getProperty('number')->setValue($invoice, $row['number']);
-        $ref->getProperty('status')->setValue($invoice, InvoiceStatus::from($row['status']));
-        $ref->getProperty('taxAmount')->setValue($invoice, Money::of((float) $row['tax_amount'], $row['currency']));
-        $ref->getProperty('amountInclTax')->setValue($invoice, Money::of((float) $row['amount_incl_tax'], $row['currency']));
-        $ref->getProperty('dueDate')->setValue($invoice, new \DateTimeImmutable($row['due_date']));
-        $ref->getProperty('paidAt')->setValue($invoice,
-            $row['paid_at'] ? new \DateTimeImmutable($row['paid_at']) : null
-        );
-        $ref->getProperty('createdAt')->setValue($invoice, new \DateTimeImmutable($row['created_at']));
-        $ref->getProperty('updatedAt')->setValue($invoice, new \DateTimeImmutable($row['updated_at']));
+        $this->hydrator->setMany($invoice, [
+            'id'            => $row['id'],
+            'number'        => $row['number'],
+            'status'        => InvoiceStatus::from($row['status']),
+            'taxAmount'     => Money::of((float) $row['tax_amount'], $row['currency']),
+            'amountInclTax' => Money::of((float) $row['amount_incl_tax'], $row['currency']),
+            'dueDate'       => new \DateTimeImmutable($row['due_date']),
+            'paidAt'        => $row['paid_at'] ? new \DateTimeImmutable($row['paid_at']) : null,
+            'createdAt'     => new \DateTimeImmutable($row['created_at']),
+            'updatedAt'     => new \DateTimeImmutable($row['updated_at']),
+        ]);
 
         return $invoice;
     }
