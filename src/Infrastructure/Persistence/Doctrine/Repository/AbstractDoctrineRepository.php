@@ -14,12 +14,9 @@ abstract readonly class AbstractDoctrineRepository
      *
      * @throws Exception
      */
-    protected function upsert(string $table, array $data, string $id): void
+    protected function upsert(string $table, array $data, bool $exists): void
     {
-        $exists = $this->connection->fetchOne(
-            "SELECT id FROM {$table} WHERE id = ?",
-            [$id]
-        );
+        $id = $data['id'];
 
         if ($exists) {
             $this->connection->update($table, $data, ['id' => $id]);

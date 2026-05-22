@@ -25,6 +25,7 @@ final readonly class OrderDoctrineRepository extends AbstractDoctrineRepository 
      */
     public function save(Order $order): void
     {
+        $exists = (bool) $this->connection->fetchOne('SELECT id FROM orders WHERE id = ?', [$order->getId()]);
         $data = [
             'id'            => $order->getId(),
             'number'        => $order->getNumber(),
@@ -36,11 +37,7 @@ final readonly class OrderDoctrineRepository extends AbstractDoctrineRepository 
             'updated_at'    => $order->getUpdatedAt()->format('Y-m-d H:i:s'),
         ];
 
-        if (!$this->connection->fetchOne('SELECT id FROM orders WHERE id = ?', [$order->getId()])) {
-            $data['created_at'] = $order->getCreatedAt()->format('Y-m-d H:i:s');
-        }
-
-        $this->upsert('orders', $data, $order->getId());
+        $this->upsert('orders', $data, $exists);
 
         foreach ($order->getOrderLines() as $line) {
             $this->saveLine($line, $order->getId());

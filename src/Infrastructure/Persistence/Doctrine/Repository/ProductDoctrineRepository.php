@@ -24,6 +24,7 @@ final readonly class ProductDoctrineRepository extends AbstractDoctrineRepositor
      */
     public function save(Product $product): void
     {
+        $exists = (bool) $this->connection->fetchOne('SELECT id FROM products WHERE id = ?', [$product->getId()]);
         $data = [
             'id'             => $product->getId(),
             'name'           => $product->getName(),
@@ -37,11 +38,7 @@ final readonly class ProductDoctrineRepository extends AbstractDoctrineRepositor
             'updated_at'     => $product->getUpdatedAt()->format('Y-m-d H:i:s'),
         ];
 
-        if (!$this->connection->fetchOne('SELECT id FROM products WHERE id = ?', [$product->getId()])) {
-            $data['created_at'] = $product->getCreatedAt()->format('Y-m-d H:i:s');
-        }
-
-        $this->upsert('products', $data, $product->getId());
+        $this->upsert('products', $data, $exists);
     }
 
     /**

@@ -22,7 +22,9 @@ final class ReflectionHydrator
      */
     public function set(object $object, string $property, mixed $value): void
     {
-        $this->reflect($object)->getProperty($property)->setValue($object, $value);
+        $prop = $this->reflect($object)->getProperty($property);
+        $prop->setAccessible(true); // requis pour les props private/protected
+        $prop->setValue($object, $value);
     }
 
     /**
@@ -36,7 +38,9 @@ final class ReflectionHydrator
         $ref = $this->reflect($object);
 
         foreach ($map as $property => $value) {
-            $ref->getProperty($property)->setValue($object, $value);
+            $prop = $ref->getProperty($property);
+            $prop->setAccessible(true);   // requis pour les props private/protected
+            $prop->setValue($object, $value);
         }
     }
 
@@ -47,12 +51,6 @@ final class ReflectionHydrator
      */
     private function reflect(object $object): ReflectionClass
     {
-        $class = $object::class;
-
-        if (!isset($this->cache[$class])) {
-            $this->cache[$class] = new ReflectionClass($object);
-        }
-
-        return $this->cache[$class];
+        return $this->cache[$object::class] ??= new ReflectionClass($object);
     }
 }

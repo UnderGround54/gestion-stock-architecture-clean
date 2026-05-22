@@ -4,8 +4,9 @@ namespace App\Presentation\Controller\Api;
 
 use App\Application\DTO\Request\PaginationDTO;
 use App\Application\UseCase\Invoice\GenerateInvoiceUseCase;
-use App\Domain\Exception\InvoiceNotFoundException;
-use App\Domain\Model\Repository\InvoiceRepositoryInterface;
+use App\Application\UseCase\Invoice\GetInvoiceUseCase;
+use App\Application\UseCase\Invoice\ListInvoicesUseCase;
+use App\Application\UseCase\Invoice\PayInvoiceUseCase;
 use App\Presentation\Response\ApiResponse;
 use App\Presentation\Transformer\ResourceTransformer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,7 +19,9 @@ final class InvoiceController extends AbstractController
 {
     public function __construct(
         private readonly GenerateInvoiceUseCase $generateInvoice,
-        private readonly InvoiceRepositoryInterface $invoiceRepository
+        private readonly ListInvoicesUseCase    $listInvoices,
+        private readonly GetInvoiceUseCase      $getInvoice,
+        private readonly PayInvoiceUseCase      $payInvoice
     ) {}
 
     #[Route('', name: 'list', methods: ['GET'])]
@@ -29,14 +32,13 @@ final class InvoiceController extends AbstractController
             limit: min(100, max(1, (int) $request->query->get('limit', 10)))
         );
 
-        $invoices = $this->invoiceRepository->findAll($pagination->page, $pagination->limit);
-        $total    = $this->invoiceRepository->countAll();
+        $result = $this->listInvoices->execute($pagination);
 
         return ApiResponse::paginated(
-            items:   ResourceTransformer::collection($invoices, 'invoice'),
-            total:   $total,
-            page:    $pagination->page,
-            limit:   $pagination->limit,
+            items:   ResourceTransformer::collection($result['items'], 'invoice'),
+            total:   $result['total'],
+            page:    $result['page'],
+            limit:   $result['limit'],
             message: 'Liste des factures récupérée.'
         );
     }
@@ -44,11 +46,7 @@ final class InvoiceController extends AbstractController
     #[Route('/{id}', name: 'detail', methods: ['GET'])]
     public function detail(string $id): JsonResponse
     {
-        $invoice = $this->invoiceRepository->findById($id);
-
-        if ($invoice === null) {
-            throw new InvoiceNotFoundException("Facture introuvable avec l'ID : {$id}");
-        }
+        $invoice = $this->getInvoice->execute($id);
 
         return ApiResponse::success(
             ResourceTransformer::invoice($invoice),
@@ -73,14 +71,7 @@ final class InvoiceController extends AbstractController
     #[Route('/{id}/pay', name: 'pay', methods: ['PATCH'])]
     public function pay(string $id): JsonResponse
     {
-        $invoice = $this->invoiceRepository->findById($id);
-
-        if ($invoice === null) {
-            throw new InvoiceNotFoundException("Facture introuvable avec l'ID : {$id}");
-        }
-
-        $invoice->markAsPaid();
-        $this->invoiceRepository->save($invoice);
+        $invoice = $this->payInvoice->execute($id);
 
         return ApiResponse::success(
             ResourceTransformer::invoice($invoice),

@@ -22,6 +22,8 @@ final readonly class ClientDoctrineRepository extends AbstractDoctrineRepository
      */
     public function save(Client $client): void
     {
+        $exists = (bool) $this->connection->fetchOne('SELECT id FROM clients WHERE id = ?', [$client->getId()]);
+
         $data = [
             'id'         => $client->getId(),
             'last_name'  => $client->getLastName(),
@@ -33,12 +35,7 @@ final readonly class ClientDoctrineRepository extends AbstractDoctrineRepository
             'updated_at' => $client->getUpdatedAt()->format('Y-m-d H:i:s'),
         ];
 
-        // created_at is only written on INSERT; upsert() handles the branching
-        if (!$this->connection->fetchOne('SELECT id FROM clients WHERE id = ?', [$client->getId()])) {
-            $data['created_at'] = $client->getCreatedAt()->format('Y-m-d H:i:s');
-        }
-
-        $this->upsert('clients', $data, $client->getId());
+        $this->upsert('clients', $data, $exists);
     }
 
     /**
@@ -46,10 +43,7 @@ final readonly class ClientDoctrineRepository extends AbstractDoctrineRepository
      */
     public function findById(string $id): ?Client
     {
-        $row = $this->connection->fetchAssociative(
-            'SELECT * FROM clients WHERE id = ?',
-            [$id]
-        );
+        $row = $this->connection->fetchAssociative('SELECT * FROM clients WHERE id = ?', [$id]);
 
         return $row ? $this->hydrate($row) : null;
     }
@@ -59,10 +53,7 @@ final readonly class ClientDoctrineRepository extends AbstractDoctrineRepository
      */
     public function findByEmail(string $email): ?Client
     {
-        $row = $this->connection->fetchAssociative(
-            'SELECT * FROM clients WHERE email = ?',
-            [$email]
-        );
+        $row = $this->connection->fetchAssociative('SELECT * FROM clients WHERE email = ?', [$email]);
 
         return $row ? $this->hydrate($row) : null;
     }

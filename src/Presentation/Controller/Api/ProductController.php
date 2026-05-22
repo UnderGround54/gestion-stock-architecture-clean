@@ -6,10 +6,9 @@ use App\Application\DTO\Request\CreateProductDTO;
 use App\Application\DTO\Request\PaginationDTO;
 use App\Application\DTO\Request\UpdateStockDTO;
 use App\Application\UseCase\Product\CreateProductUseCase;
+use App\Application\UseCase\Product\GetProductUseCase;
 use App\Application\UseCase\Product\ListProductsUseCase;
 use App\Application\UseCase\Product\UpdateStockUseCase;
-use App\Domain\Exception\ProductNotFoundException;
-use App\Domain\Model\Repository\ProductRepositoryInterface;
 use App\Presentation\Response\ApiResponse;
 use App\Presentation\Transformer\ResourceTransformer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,11 +21,11 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 final class ProductController extends AbstractController
 {
     public function __construct(
-        private readonly CreateProductUseCase       $createProduct,
-        private readonly ListProductsUseCase        $listProducts,
-        private readonly UpdateStockUseCase         $updateStock,
-        private readonly ProductRepositoryInterface $productRepository,
-        private readonly ValidatorInterface $validator
+        private readonly CreateProductUseCase $createProduct,
+        private readonly ListProductsUseCase  $listProducts,
+        private readonly UpdateStockUseCase   $updateStock,
+        private readonly GetProductUseCase    $getProduct,
+        private readonly ValidatorInterface   $validator
     ) {}
 
     #[Route('', name: 'list', methods: ['GET'])]
@@ -51,11 +50,7 @@ final class ProductController extends AbstractController
     #[Route('/{id}', name: 'detail', methods: ['GET'])]
     public function detail(string $id): JsonResponse
     {
-        $product = $this->productRepository->findById($id);
-
-        if ($product === null) {
-            throw new ProductNotFoundException("Produit introuvable avec l'ID : {$id}");
-        }
+        $product = $this->getProduct->execute($id);
 
         return ApiResponse::success(
             ResourceTransformer::product($product),

@@ -7,8 +7,8 @@ use App\Application\DTO\Request\OrderLineDTO;
 use App\Application\DTO\Request\PaginationDTO;
 use App\Application\UseCase\Order\ConfirmOrderUseCase;
 use App\Application\UseCase\Order\CreateOrderUseCase;
-use App\Domain\Exception\OrderNotFoundException;
-use App\Domain\Model\Repository\OrderRepositoryInterface;
+use App\Application\UseCase\Order\GetOrderUseCase;
+use App\Application\UseCase\Order\ListOrdersUseCase;
 use App\Presentation\Response\ApiResponse;
 use App\Presentation\Transformer\ResourceTransformer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,7 +23,8 @@ final class OrderController extends AbstractController
     public function __construct(
         private readonly CreateOrderUseCase $createOrder,
         private readonly ConfirmOrderUseCase $confirmOrder,
-        private readonly OrderRepositoryInterface $orderRepository,
+        private readonly ListOrdersUseCase  $listOrder,
+        private readonly GetOrderUseCase    $getOrder,
         private readonly ValidatorInterface $validator
     ) {}
 
@@ -35,14 +36,13 @@ final class OrderController extends AbstractController
             limit: min(100, max(1, (int) $request->query->get('limit', 10)))
         );
 
-        $orders = $this->orderRepository->findAll($pagination->page, $pagination->limit);
-        $total  = $this->orderRepository->countAll();
+        $result = $this->listOrder->execute($pagination);
 
         return ApiResponse::paginated(
-            items:   ResourceTransformer::collection($orders, 'order'),
-            total:   $total,
-            page:    $pagination->page,
-            limit:   $pagination->limit,
+            items:   ResourceTransformer::collection($result['items'], 'order'),
+            total:   $result['total'],
+            page:    $result['page'],
+            limit:   $result['limit'],
             message: 'Liste des commandes récupérée.'
         );
     }
@@ -50,11 +50,7 @@ final class OrderController extends AbstractController
     #[Route('/{id}', name: 'detail', methods: ['GET'])]
     public function detail(string $id): JsonResponse
     {
-        $order = $this->orderRepository->findById($id);
-
-        if ($order === null) {
-            throw new OrderNotFoundException("Commande introuvable avec l'ID : {$id}");
-        }
+        $order = $this->getOrder->execute($id);
 
         return ApiResponse::success(
             ResourceTransformer::order($order),

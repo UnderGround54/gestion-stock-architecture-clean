@@ -24,6 +24,7 @@ final readonly class InvoiceDoctrineRepository extends AbstractDoctrineRepositor
      */
     public function save(Invoice $invoice): void
     {
+        $exists = (bool) $this->connection->fetchOne('SELECT id FROM invoices WHERE id = ?', [$invoice->getId()]);
         $data = [
             'id'              => $invoice->getId(),
             'number'          => $invoice->getNumber(),
@@ -40,11 +41,7 @@ final readonly class InvoiceDoctrineRepository extends AbstractDoctrineRepositor
             'updated_at'      => $invoice->getUpdatedAt()->format('Y-m-d H:i:s'),
         ];
 
-        if (!$this->connection->fetchOne('SELECT id FROM invoices WHERE id = ?', [$invoice->getId()])) {
-            $data['created_at'] = $invoice->getCreatedAt()->format('Y-m-d H:i:s');
-        }
-
-        $this->upsert('invoices', $data, $invoice->getId());
+        $this->upsert('invoices', $data, $exists);
     }
 
     /**

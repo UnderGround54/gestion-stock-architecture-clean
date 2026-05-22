@@ -4,9 +4,10 @@ namespace App\Presentation\Controller\Api;
 
 use App\Application\DTO\Request\CreateClientDTO;
 use App\Application\DTO\Request\PaginationDTO;
-use App\Domain\Exception\ClientNotFoundException;
-use App\Domain\Model\Entity\Client;
-use App\Domain\Model\Repository\ClientRepositoryInterface;
+use App\Application\UseCase\Client\CreateClientUseCase;
+use App\Application\UseCase\Client\DisableClientUseCase;
+use App\Application\UseCase\Client\GetClientUseCase;
+use App\Application\UseCase\Client\ListClientsUseCase;
 use App\Presentation\Response\ApiResponse;
 use App\Presentation\Transformer\ResourceTransformer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,8 +20,11 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 final class ClientController extends AbstractController
 {
     public function __construct(
-        private readonly ClientRepositoryInterface $clientRepository,
-        private readonly ValidatorInterface $validator
+        private readonly ListClientsUseCase   $listClients,
+        private readonly CreateClientUseCase  $createClient,
+        private readonly GetClientUseCase     $getClient,
+        private readonly DisableClientUseCase $disableClient,
+        private readonly ValidatorInterface   $validator
     ) {}
 
     #[Route('', name: 'list', methods: ['GET'])]
@@ -30,14 +34,13 @@ final class ClientController extends AbstractController
             page:  max(1, (int) $request->query->get('page', 1)),
             limit: min(100, max(1, (int) $request->query->get('limit', 10)))
         );
-        $clients = $this->clientRepository->findAll($pagination->page, $pagination->limit);
-        $total   = $this->clientRepository->countAll();
+        $result = $this->listClients->execute($pagination);
 
         return ApiResponse::paginated(
-            items:   ResourceTransformer::collection($clients, 'client'),
-            total:   $total,
-            page:    $pagination->page,
-            limit:   $pagination->limit,
+            items:   ResourceTransformer::collection($result['items'], 'client'),
+            total:   $result['total'],
+            page:    $result['page'],
+            limit:   $result['limit'],
             message: 'Liste des clients récupérée.'
         );
     }
@@ -45,15 +48,11 @@ final class ClientController extends AbstractController
     #[Route('/{id}', name: 'detail', methods: ['GET'])]
     public function detail(string $id): JsonResponse
     {
-        $client = $this->clientRepository->findById($id);
-
-        if ($client === null) {
-            throw new ClientNotFoundException("ClientOrm introuvable avec l'ID : {$id}");
-        }
+        $client = $this->getClient->execute($id);
 
         return ApiResponse::success(
             ResourceTransformer::client($client),
-            'ClientOrm récupéré.'
+            'Client récupéré.'
         );
     }
 
@@ -79,42 +78,19 @@ final class ClientController extends AbstractController
             return ApiResponse::error('Données invalides.', 422, $errors);
         }
 
-        // Règle de gestion: email unique
-        if ($this->clientRepository->existsByEmail($dto->email)) {
-            return ApiResponse::error(
-                "Un client avec l'email '{$dto->email}' existe déjà.",
-                409
-            );
-        }
-
-        $client = new Client(
-            $dto->lastName,
-            $dto->firstName,
-            $dto->email,
-            $dto->phone,
-            $dto->address
-        );
-
-        $this->clientRepository->save($client);
+        $client = $this->createClient->execute($dto);
 
         return ApiResponse::created(
             ResourceTransformer::client($client),
-            'ClientOrm créé avec succès.'
+            'Client créé avec succès.'
         );
     }
 
     #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
     public function delete(string $id): JsonResponse
     {
-        $client = $this->clientRepository->findById($id);
+        $this->disableClient->execute($id);
 
-        if ($client === null) {
-            throw new ClientNotFoundException("ClientOrm introuvable avec l'ID : {$id}");
-        }
-
-        $client->disable();
-        $this->clientRepository->save($client);
-
-        return ApiResponse::success(null, 'ClientOrm désactivé avec succès.');
+        return ApiResponse::success(null, 'Client désactivé avec succès.');
     }
 }
