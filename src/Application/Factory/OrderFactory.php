@@ -10,7 +10,7 @@ use App\Domain\Model\Entity\Product;
 
 final class OrderFactory
 {
-    public static function create(string $clientId, string $customerNote = ''): Order
+    public static function createOrder(string $clientId, string $customerNote = ''): Order
     {
         return new Order($clientId, $customerNote);
     }

@@ -15,7 +15,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
+use App\Presentation\Http\RequestParser;
 
 #[Route('/api/v1/products', name: 'api_products_')]
 final class ProductController extends AbstractController
@@ -25,7 +25,7 @@ final class ProductController extends AbstractController
         private readonly ListProductsUseCase  $listProducts,
         private readonly UpdateStockUseCase   $updateStock,
         private readonly GetProductUseCase    $getProduct,
-        private readonly ValidatorInterface   $validator
+        private readonly RequestParser        $parser,
     ) {}
 
     #[Route('', name: 'list', methods: ['GET'])]
@@ -61,25 +61,20 @@ final class ProductController extends AbstractController
     #[Route('', name: 'create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
-        $body = json_decode($request->getContent(), true) ?? [];
+        $body = $this->parser->body($request);
 
         $dto = new CreateProductDTO(
-            name:          $body['name'] ?? '',
-            reference:     $body['reference'] ?? '',
-            description:   $body['description'] ?? '',
+            name:          $body['name']           ?? '',
+            reference:     $body['reference']      ?? '',
+            description:   $body['description']    ?? '',
             price:         (float) ($body['price'] ?? 0),
             stockQuantity: (int) ($body['stock_quantity'] ?? 0),
-            minimumStock:  (int) ($body['minimum_stock'] ?? 5),
-            currency:      $body['currency'] ?? 'MGA'
+            minimumStock:  (int) ($body['minimum_stock']  ?? 5),
+            currency:      $body['currency']       ?? 'MGA'
         );
 
-        $violations = $this->validator->validate($dto);
-        if (count($violations) > 0) {
-            $errors = [];
-            foreach ($violations as $v) {
-                $errors[$v->getPropertyPath()][] = $v->getMessage();
-            }
-            return ApiResponse::error('Données invalides.', 422, $errors);
+        if ($error = $this->parser->validate($dto)) {
+            return $error;
         }
 
         $product = $this->createProduct->execute($dto);
@@ -93,21 +88,16 @@ final class ProductController extends AbstractController
     #[Route('/{id}/stock', name: 'update_stock', methods: ['PATCH'])]
     public function updateStock(string $id, Request $request): JsonResponse
     {
-        $body = json_decode($request->getContent(), true) ?? [];
+        $body = $this->parser->body($request);
 
         $dto = new UpdateStockDTO(
             productId:  $id,
-            quantity:   (int) ($body['quantity'] ?? 0),
-            operation:  $body['operation'] ?? ''
+            quantity:   (int) ($body['quantity']  ?? 0),
+            operation:  $body['operation']        ?? ''
         );
 
-        $violations = $this->validator->validate($dto);
-        if (count($violations) > 0) {
-            $errors = [];
-            foreach ($violations as $v) {
-                $errors[$v->getPropertyPath()][] = $v->getMessage();
-            }
-            return ApiResponse::error('Données invalides.', 422, $errors);
+        if ($error = $this->parser->validate($dto)) {
+            return $error;
         }
 
         $product = $this->updateStock->execute($dto);

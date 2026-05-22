@@ -34,7 +34,7 @@ final readonly class CreateOrderUseCase
         }
 
         // Crée la commande via la Factory
-        $order = OrderFactory::create($dto->clientId, $dto->customerNote);
+        $order = OrderFactory::createOrder($dto->clientId, $dto->customerNote);
 
         // Traite chaque ligne
         foreach ($dto->orderLines as $lineDTO) {

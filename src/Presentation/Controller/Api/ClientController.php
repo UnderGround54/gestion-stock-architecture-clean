@@ -8,13 +8,13 @@ use App\Application\UseCase\Client\CreateClientUseCase;
 use App\Application\UseCase\Client\DisableClientUseCase;
 use App\Application\UseCase\Client\GetClientUseCase;
 use App\Application\UseCase\Client\ListClientsUseCase;
+use App\Presentation\Http\RequestParser;
 use App\Presentation\Response\ApiResponse;
 use App\Presentation\Transformer\ResourceTransformer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/v1/clients', name: 'api_clients_')]
 final class ClientController extends AbstractController
@@ -24,7 +24,7 @@ final class ClientController extends AbstractController
         private readonly CreateClientUseCase  $createClient,
         private readonly GetClientUseCase     $getClient,
         private readonly DisableClientUseCase $disableClient,
-        private readonly ValidatorInterface   $validator
+        private readonly RequestParser        $parser,
     ) {}
 
     #[Route('', name: 'list', methods: ['GET'])]
@@ -59,23 +59,18 @@ final class ClientController extends AbstractController
     #[Route('', name: 'create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
-        $body = json_decode($request->getContent(), true) ?? [];
+        $body = $this->parser->body($request);
 
         $dto = new CreateClientDTO(
-            lastName:  $body['last_name'] ?? '',
+            lastName:  $body['last_name']  ?? '',
             firstName: $body['first_name'] ?? '',
-            email:     $body['email'] ?? '',
-            phone:     $body['phone'] ?? '',
-            address:   $body['address'] ?? ''
+            email:     $body['email']      ?? '',
+            phone:     $body['phone']      ?? '',
+            address:   $body['address']    ?? ''
         );
 
-        $violations = $this->validator->validate($dto);
-        if (count($violations) > 0) {
-            $errors = [];
-            foreach ($violations as $v) {
-                $errors[$v->getPropertyPath()][] = $v->getMessage();
-            }
-            return ApiResponse::error('Données invalides.', 422, $errors);
+        if ($error = $this->parser->validate($dto)) {
+            return $error;
         }
 
         $client = $this->createClient->execute($dto);
@@ -86,8 +81,8 @@ final class ClientController extends AbstractController
         );
     }
 
-    #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
-    public function delete(string $id): JsonResponse
+    #[Route('/{id}', name: 'disable', methods: ['DELETE'])]
+    public function disable(string $id): JsonResponse
     {
         $this->disableClient->execute($id);
 

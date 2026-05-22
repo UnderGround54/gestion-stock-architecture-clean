@@ -15,7 +15,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
+use App\Presentation\Http\RequestParser;
 
 #[Route('/api/v1/orders', name: 'api_orders_')]
 final class OrderController extends AbstractController
@@ -25,7 +25,7 @@ final class OrderController extends AbstractController
         private readonly ConfirmOrderUseCase $confirmOrder,
         private readonly ListOrdersUseCase  $listOrder,
         private readonly GetOrderUseCase    $getOrder,
-        private readonly ValidatorInterface $validator
+        private readonly RequestParser      $parser,
     ) {}
 
     #[Route('', name: 'list', methods: ['GET'])]
@@ -61,7 +61,7 @@ final class OrderController extends AbstractController
     #[Route('', name: 'create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
-        $body = json_decode($request->getContent(), true) ?? [];
+        $body = $this->parser->body($request);
 
         $linesDTO = array_map(
             fn(array $l) => new OrderLineDTO(
@@ -77,13 +77,8 @@ final class OrderController extends AbstractController
             customerNote: $body['customer_note'] ?? ''
         );
 
-        $violations = $this->validator->validate($dto);
-        if (count($violations) > 0) {
-            $errors = [];
-            foreach ($violations as $v) {
-                $errors[$v->getPropertyPath()][] = $v->getMessage();
-            }
-            return ApiResponse::error('Données invalides.', 422, $errors);
+        if ($error = $this->parser->validate($dto)) {
+            return $error;
         }
 
         $order = $this->createOrder->execute($dto);

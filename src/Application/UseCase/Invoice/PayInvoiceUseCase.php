@@ -9,13 +9,13 @@ readonly class PayInvoiceUseCase
 {
 
     public function __construct(
-        private GetInvoiceUseCase          $getInvoiceUseCase,
         private invoiceRepositoryInterface $invoiceRepository
     ){}
 
     public function execute(string $id)
     {
-        $invoice = $this->getInvoiceUseCase->execute($id);
+        $invoice = $this->invoiceRepository->findById($id);
+
         if ($invoice === null) {
             throw new InvoiceNotFoundException("Facture introuvable avec l'ID : {$id}");
         }

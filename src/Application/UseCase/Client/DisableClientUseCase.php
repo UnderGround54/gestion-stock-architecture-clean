@@ -2,19 +2,23 @@
 
 namespace App\Application\UseCase\Client;
 
+use App\Domain\Exception\ClientNotFoundException;
 use App\Domain\Model\Entity\Client;
 use App\Domain\Model\Repository\ClientRepositoryInterface;
 
 final readonly class DisableClientUseCase
 {
     public function __construct(
-        private GetClientUseCase          $getClient,
         private ClientRepositoryInterface $clientRepository,
     ) {}
 
     public function execute(string $id): Client
     {
-        $client = $this->getClient->execute($id); // lance ClientNotFoundException si absent
+        $client = $this->clientRepository->findById($id);
+
+        if ($client === null) {
+            throw new ClientNotFoundException("Client introuvable avec l'ID : {$id}");
+        }
 
         $client->disable();
         $this->clientRepository->save($client);

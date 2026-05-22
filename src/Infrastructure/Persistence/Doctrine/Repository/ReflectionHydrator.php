@@ -6,7 +6,8 @@ use ReflectionClass;
 use ReflectionException;
 
 /**
- * Centralises ReflectionClass property injection for Domain entities.
+ * Injecte des valeurs dans les propriétés privées/protégées des entités du Domain
+ * via Reflection, sans passer par des setters publics.
  */
 final class ReflectionHydrator
 {
@@ -22,9 +23,7 @@ final class ReflectionHydrator
      */
     public function set(object $object, string $property, mixed $value): void
     {
-        $prop = $this->reflect($object)->getProperty($property);
-        $prop->setAccessible(true); // requis pour les props private/protected
-        $prop->setValue($object, $value);
+        $this->reflect($object)->getProperty($property)->setValue($object, $value);
     }
 
     /**
@@ -38,9 +37,7 @@ final class ReflectionHydrator
         $ref = $this->reflect($object);
 
         foreach ($map as $property => $value) {
-            $prop = $ref->getProperty($property);
-            $prop->setAccessible(true);   // requis pour les props private/protected
-            $prop->setValue($object, $value);
+            $ref->getProperty($property)->setValue($object, $value);
         }
     }
 

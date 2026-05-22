@@ -16,6 +16,12 @@ abstract readonly class AbstractDoctrineRepository
      */
     protected function upsert(string $table, array $data, bool $exists): void
     {
+        if (!array_key_exists('id', $data)) {
+            throw new \InvalidArgumentException(
+                "upsert() requiert une clé 'id' dans \$data pour la table '{$table}'."
+            );
+        }
+
         $id = $data['id'];
 
         if ($exists) {
