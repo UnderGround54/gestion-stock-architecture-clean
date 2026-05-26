@@ -39,7 +39,7 @@ final class OrderController extends AbstractController
         $result = $this->listOrder->execute($pagination);
 
         return ApiResponse::paginated(
-            items:   ResourceTransformer::collection($result['items'], 'order'),
+            items:   array_map(ResourceTransformer::order(...), $result['items']),
             total:   $result['total'],
             page:    $result['page'],
             limit:   $result['limit'],

@@ -8,7 +8,7 @@ use App\Domain\Model\Entity\Order;
 
 final class InvoiceFactory
 {
-    public static function createFromOrder(Order $order, float $taxRate = 20.0, int $dueInDays = 30): Invoice
+    public function createFromOrder(Order $order, float $taxRate = 20.0, int $dueInDays = 30): Invoice
     {
         return new Invoice(
             orderId:       $order->getId(),

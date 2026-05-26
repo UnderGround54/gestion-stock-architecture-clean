@@ -108,15 +108,4 @@ final class ResourceTransformer
             'updated_at'     => $invoice->getUpdatedAt()->format(DateTimeInterface::ATOM),
         ];
     }
-
-    /** @param array<Product|Client|Order|Invoice> $items */
-    public static function collection(array $items, string $type): array
-    {
-        return array_map(fn($item) => match ($type) {
-            'product' => self::product($item),
-            'client'  => self::client($item),
-            'order'   => self::order($item),
-            'invoice' => self::invoice($item),
-        }, $items);
-    }
 }

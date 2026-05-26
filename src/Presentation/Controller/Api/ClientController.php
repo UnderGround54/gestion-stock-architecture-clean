@@ -8,7 +8,7 @@ use App\Application\UseCase\Client\CreateClientUseCase;
 use App\Application\UseCase\Client\DisableClientUseCase;
 use App\Application\UseCase\Client\GetClientUseCase;
 use App\Application\UseCase\Client\ListClientsUseCase;
-use App\Presentation\Http\RequestParser;
+use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use App\Presentation\Response\ApiResponse;
 use App\Presentation\Transformer\ResourceTransformer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -24,7 +24,6 @@ final class ClientController extends AbstractController
         private readonly CreateClientUseCase  $createClient,
         private readonly GetClientUseCase     $getClient,
         private readonly DisableClientUseCase $disableClient,
-        private readonly RequestParser        $parser,
     ) {}
 
     #[Route('', name: 'list', methods: ['GET'])]
@@ -37,7 +36,7 @@ final class ClientController extends AbstractController
         $result = $this->listClients->execute($pagination);
 
         return ApiResponse::paginated(
-            items:   ResourceTransformer::collection($result['items'], 'client'),
+            items:   array_map(ResourceTransformer::client(...), $result['items']),
             total:   $result['total'],
             page:    $result['page'],
             limit:   $result['limit'],
@@ -57,22 +56,8 @@ final class ClientController extends AbstractController
     }
 
     #[Route('', name: 'create', methods: ['POST'])]
-    public function create(Request $request): JsonResponse
+    public function create(#[MapRequestPayload] CreateClientDTO $dto): JsonResponse
     {
-        $body = $this->parser->body($request);
-
-        $dto = new CreateClientDTO(
-            lastName:  $body['last_name']  ?? '',
-            firstName: $body['first_name'] ?? '',
-            email:     $body['email']      ?? '',
-            phone:     $body['phone']      ?? '',
-            address:   $body['address']    ?? ''
-        );
-
-        if ($error = $this->parser->validate($dto)) {
-            return $error;
-        }
-
         $client = $this->createClient->execute($dto);
 
         return ApiResponse::created(

@@ -2,6 +2,7 @@
 
 namespace App\Application\UseCase\Invoice;
 
+use App\Application\DTO\Request\GenerateInvoiceDTO;
 use App\Application\Factory\InvoiceFactory;
 use App\Domain\Enum\OrderStatus;
 use App\Domain\Event\InvoiceCreatedEvent;
@@ -17,10 +18,11 @@ final readonly class GenerateInvoiceUseCase
     public function __construct(
         private OrderRepositoryInterface   $orderRepository,
         private InvoiceRepositoryInterface $invoiceRepository,
-        private EventDispatcherInterface   $eventDispatcher
+        private EventDispatcherInterface   $eventDispatcher,
+        private InvoiceFactory             $invoiceFactory
     ) {}
 
-    public function execute(string $orderId, float $taxRate = 20.0): Invoice
+    public function execute(string $orderId, GenerateInvoiceDTO $dto): Invoice
     {
         $order = $this->orderRepository->findById($orderId);
 
@@ -46,7 +48,7 @@ final readonly class GenerateInvoiceUseCase
             );
         }
 
-        $invoice = InvoiceFactory::createFromOrder($order, $taxRate);
+        $invoice = $this->invoiceFactory->createFromOrder($order, $dto->taxRate);
         $this->invoiceRepository->save($invoice);
 
         $this->eventDispatcher->dispatch(new InvoiceCreatedEvent(

@@ -2,12 +2,13 @@
 
 namespace App\Presentation\Controller\Api;
 
+use App\Application\DTO\Request\GenerateInvoiceDTO;
 use App\Application\DTO\Request\PaginationDTO;
 use App\Application\UseCase\Invoice\GenerateInvoiceUseCase;
 use App\Application\UseCase\Invoice\GetInvoiceUseCase;
 use App\Application\UseCase\Invoice\ListInvoicesUseCase;
 use App\Application\UseCase\Invoice\PayInvoiceUseCase;
-use App\Presentation\Http\RequestParser;
+use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use App\Presentation\Response\ApiResponse;
 use App\Presentation\Transformer\ResourceTransformer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,8 +23,7 @@ final class InvoiceController extends AbstractController
         private readonly GenerateInvoiceUseCase $generateInvoice,
         private readonly ListInvoicesUseCase    $listInvoices,
         private readonly GetInvoiceUseCase      $getInvoice,
-        private readonly PayInvoiceUseCase      $payInvoice,
-        private readonly RequestParser          $parser,
+        private readonly PayInvoiceUseCase      $payInvoice
     ) {}
 
     #[Route('', name: 'list', methods: ['GET'])]
@@ -37,7 +37,7 @@ final class InvoiceController extends AbstractController
         $result = $this->listInvoices->execute($pagination);
 
         return ApiResponse::paginated(
-            items:   ResourceTransformer::collection($result['items'], 'invoice'),
+            items:   array_map(ResourceTransformer::invoice(...), $result['items']),
             total:   $result['total'],
             page:    $result['page'],
             limit:   $result['limit'],
@@ -57,12 +57,9 @@ final class InvoiceController extends AbstractController
     }
 
     #[Route('/orders/{orderId}/generate', name: 'generate', methods: ['POST'])]
-    public function generate(string $orderId, Request $request): JsonResponse
+    public function generate(string $orderId, #[MapRequestPayload(validationGroups: ['Default'])] GenerateInvoiceDTO $dto): JsonResponse
     {
-        $body    = $this->parser->body($request);
-        $taxRate = (float) ($body['tax_rate'] ?? 20.0);
-
-        $invoice = $this->generateInvoice->execute($orderId, $taxRate);
+        $invoice = $this->generateInvoice->execute($orderId, $dto);
 
         return ApiResponse::created(
             ResourceTransformer::invoice($invoice),

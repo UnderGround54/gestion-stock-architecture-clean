@@ -6,6 +6,7 @@ use App\Domain\Enum\InvoiceStatus;
 use App\Domain\Model\Entity\Invoice;
 use App\Domain\Model\Repository\InvoiceRepositoryInterface;
 use App\Domain\ValueObject\Money;
+use App\Infrastructure\Hydration\ReflectionHydrator;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\ParameterType;

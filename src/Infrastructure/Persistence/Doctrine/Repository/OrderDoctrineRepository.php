@@ -7,6 +7,7 @@ use App\Domain\Model\Entity\Order;
 use App\Domain\Model\Entity\OrderLine;
 use App\Domain\Model\Repository\OrderRepositoryInterface;
 use App\Domain\ValueObject\Money;
+use App\Infrastructure\Hydration\ReflectionHydrator;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\ParameterType;

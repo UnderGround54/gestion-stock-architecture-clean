@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Infrastructure\Persistence\Doctrine\Repository;
+namespace App\Infrastructure\Hydration;
 
 use ReflectionClass;
 use ReflectionException;
@@ -11,7 +11,6 @@ use ReflectionException;
  */
 final class ReflectionHydrator
 {
-    /** @var array<class-string, ReflectionClass<object>> */
     private array $cache = [];
 
     /**

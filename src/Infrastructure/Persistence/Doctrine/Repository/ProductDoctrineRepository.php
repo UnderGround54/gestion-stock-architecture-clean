@@ -5,10 +5,10 @@ namespace App\Infrastructure\Persistence\Doctrine\Repository;
 use App\Domain\Model\Entity\Product;
 use App\Domain\Model\Repository\ProductRepositoryInterface;
 use App\Domain\ValueObject\Money;
+use App\Infrastructure\Hydration\ReflectionHydrator;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\ParameterType;
-use ReflectionException;
 
 final readonly class ProductDoctrineRepository extends AbstractDoctrineRepository implements ProductRepositoryInterface
 {

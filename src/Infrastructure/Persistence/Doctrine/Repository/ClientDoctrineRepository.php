@@ -4,6 +4,7 @@ namespace App\Infrastructure\Persistence\Doctrine\Repository;
 
 use App\Domain\Model\Entity\Client;
 use App\Domain\Model\Repository\ClientRepositoryInterface;
+use App\Infrastructure\Hydration\ReflectionHydrator;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\ParameterType;
@@ -40,6 +41,7 @@ final readonly class ClientDoctrineRepository extends AbstractDoctrineRepository
 
     /**
      * @throws Exception
+     * @throws \Exception
      */
     public function findById(string $id): ?Client
     {
@@ -48,8 +50,10 @@ final readonly class ClientDoctrineRepository extends AbstractDoctrineRepository
         return $row ? $this->hydrate($row) : null;
     }
 
+
     /**
      * @throws Exception
+     * @throws \Exception
      */
     public function findByEmail(string $email): ?Client
     {

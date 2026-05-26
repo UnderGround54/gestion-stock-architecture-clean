@@ -10,12 +10,12 @@ use App\Domain\Model\Entity\Product;
 
 final class OrderFactory
 {
-    public static function createOrder(string $clientId, string $customerNote = ''): Order
+    public function createOrder(string $clientId, string $customerNote = ''): Order
     {
         return new Order($clientId, $customerNote);
     }
 
-    public static function createLine(Product $product, OrderLineDTO $dto): OrderLine
+    public function createLine(Product $product, OrderLineDTO $dto): OrderLine
     {
         return new OrderLine(
             productId:        $product->getId(),

@@ -5,15 +5,33 @@ namespace App\Presentation\Http;
 use App\Presentation\Response\ApiResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final readonly class RequestParser
 {
-    public function __construct(private ValidatorInterface $validator) {}
+    public function __construct(
+        private ValidatorInterface $validator,
+        private SerializerInterface $serializer
+    ) {}
 
     public function body(Request $request): array
     {
-        return json_decode($request->getContent(), true) ?? [];
+        $content = $request->getContent();
+
+        if (empty($content)) {
+            return [];
+        }
+
+        $data = json_decode($content, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new \InvalidArgumentException(
+                'Corps de la requête JSON invalide : ' . json_last_error_msg()
+            );
+        }
+
+        return $data;
     }
 
     /**

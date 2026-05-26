@@ -14,6 +14,7 @@ use App\Presentation\Transformer\ResourceTransformer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Presentation\Http\RequestParser;
 
@@ -39,7 +40,7 @@ final class ProductController extends AbstractController
         $result = $this->listProducts->execute($pagination);
 
         return ApiResponse::paginated(
-            items:   ResourceTransformer::collection($result['items'], 'product'),
+            items:   array_map(ResourceTransformer::product(...), $result['items']),
             total:   $result['total'],
             page:    $result['page'],
             limit:   $result['limit'],
@@ -59,24 +60,8 @@ final class ProductController extends AbstractController
     }
 
     #[Route('', name: 'create', methods: ['POST'])]
-    public function create(Request $request): JsonResponse
+    public function create(#[MapRequestPayload] CreateProductDTO $dto): JsonResponse
     {
-        $body = $this->parser->body($request);
-
-        $dto = new CreateProductDTO(
-            name:          $body['name']           ?? '',
-            reference:     $body['reference']      ?? '',
-            description:   $body['description']    ?? '',
-            price:         (float) ($body['price'] ?? 0),
-            stockQuantity: (int) ($body['stock_quantity'] ?? 0),
-            minimumStock:  (int) ($body['minimum_stock']  ?? 5),
-            currency:      $body['currency']       ?? 'MGA'
-        );
-
-        if ($error = $this->parser->validate($dto)) {
-            return $error;
-        }
-
         $product = $this->createProduct->execute($dto);
 
         return ApiResponse::created(

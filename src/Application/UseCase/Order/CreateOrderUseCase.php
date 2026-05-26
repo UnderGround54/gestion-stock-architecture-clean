@@ -20,7 +20,8 @@ final readonly class CreateOrderUseCase
         private OrderRepositoryInterface   $orderRepository,
         private ClientRepositoryInterface  $clientRepository,
         private ProductRepositoryInterface $productRepository,
-        private EventDispatcherInterface   $eventDispatcher
+        private EventDispatcherInterface   $eventDispatcher,
+        private OrderFactory               $orderFactory
     ) {}
 
     public function execute(CreateOrderDTO $dto): Order
@@ -34,7 +35,7 @@ final readonly class CreateOrderUseCase
         }
 
         // Crée la commande via la Factory
-        $order = OrderFactory::createOrder($dto->clientId, $dto->customerNote);
+        $order = $this->orderFactory->createOrder($dto->clientId, $dto->customerNote);
 
         // Traite chaque ligne
         foreach ($dto->orderLines as $lineDTO) {
@@ -57,7 +58,7 @@ final readonly class CreateOrderUseCase
             $this->productRepository->save($product);
 
             // Crée la ligne via la Factory
-            $line = OrderFactory::createLine($product, $lineDTO);
+            $line = $this->orderFactory->createLine($product, $lineDTO);
             $order->addLine($line);
         }
 
