@@ -2,17 +2,17 @@
 
 namespace App\Application\UseCase\Order;
 
-use App\Application\DTO\Request\CreateOrderDTO;
 use App\Application\Factory\OrderFactory;
 use App\Domain\Event\OrderCreatedEvent;
 use App\Domain\Exception\ClientNotFoundException;
-use App\Domain\Exception\InvalidProductException;
 use App\Domain\Exception\ProductNotFoundException;
 use App\Domain\Model\Entity\Order;
 use App\Domain\Model\Repository\ClientRepositoryInterface;
 use App\Domain\Model\Repository\OrderRepositoryInterface;
 use App\Domain\Model\Repository\ProductRepositoryInterface;
-use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
+use App\Domain\Port\EventDispatcherInterface;
+use App\Domain\Service\StockService;
+use App\Presentation\DTO\Request\CreateOrderDTO;
 
 final readonly class CreateOrderUseCase
 {
@@ -21,7 +21,8 @@ final readonly class CreateOrderUseCase
         private ClientRepositoryInterface  $clientRepository,
         private ProductRepositoryInterface $productRepository,
         private EventDispatcherInterface   $eventDispatcher,
-        private OrderFactory               $orderFactory
+        private OrderFactory               $orderFactory,
+        public StockService                $stockService
     ) {}
 
     public function execute(CreateOrderDTO $dto): Order
@@ -30,7 +31,7 @@ final readonly class CreateOrderUseCase
         $client = $this->clientRepository->findById($dto->clientId);
         if ($client === null) {
             throw new ClientNotFoundException(
-                "ClientOrm introuvable avec l'ID : {$dto->clientId}"
+                "Client introuvable avec l'ID : {$dto->clientId}"
             );
         }
 
@@ -47,14 +48,8 @@ final readonly class CreateOrderUseCase
                 );
             }
 
-            if (!$product->isAvailable()) {
-                throw new InvalidProductException(
-                    "Le produit '{$product->getName()}' n'est pas disponible."
-                );
-            }
-
             // Règle de gestion: diminuer le stock
-            $product->decreaseStock($lineDTO->quantity);
+            $this->stockService->decreaseStock($product, $lineDTO->quantity);
             $this->productRepository->save($product);
 
             // Crée la ligne via la Factory

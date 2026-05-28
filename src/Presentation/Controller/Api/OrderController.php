@@ -2,20 +2,20 @@
 
 namespace App\Presentation\Controller\Api;
 
-use App\Application\DTO\Request\CreateOrderDTO;
-use App\Application\DTO\Request\OrderLineDTO;
-use App\Application\DTO\Request\PaginationDTO;
 use App\Application\UseCase\Order\ConfirmOrderUseCase;
 use App\Application\UseCase\Order\CreateOrderUseCase;
 use App\Application\UseCase\Order\GetOrderUseCase;
 use App\Application\UseCase\Order\ListOrdersUseCase;
+use App\Presentation\DTO\Request\CreateOrderDTO;
+use App\Presentation\DTO\Request\OrderLineDTO;
+use App\Presentation\DTO\Request\PaginationDTO;
+use App\Presentation\Http\RequestParser;
 use App\Presentation\Response\ApiResponse;
 use App\Presentation\Transformer\ResourceTransformer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Presentation\Http\RequestParser;
 
 #[Route('/api/v1/orders', name: 'api_orders_')]
 final class OrderController extends AbstractController
@@ -32,8 +32,8 @@ final class OrderController extends AbstractController
     public function list(Request $request): JsonResponse
     {
         $pagination = new PaginationDTO(
-            page:  max(1, (int) $request->query->get('page', 1)),
-            limit: min(100, max(1, (int) $request->query->get('limit', 10)))
+            page: (int) $request->query->get('page', 1),
+            limit: (int) $request->query->get('limit', 10)
         );
 
         $result = $this->listOrder->execute($pagination);

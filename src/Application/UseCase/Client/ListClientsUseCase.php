@@ -2,8 +2,8 @@
 
 namespace App\Application\UseCase\Client;
 
-use App\Application\DTO\Request\PaginationDTO;
 use App\Domain\Model\Repository\ClientRepositoryInterface;
+use App\Presentation\DTO\Request\PaginationDTO;
 
 
 final readonly class ListClientsUseCase

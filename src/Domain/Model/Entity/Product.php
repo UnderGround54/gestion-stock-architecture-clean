@@ -5,7 +5,6 @@ namespace App\Domain\Model\Entity;
 use App\Domain\Exception\InsufficientStockException;
 use App\Domain\Exception\InvalidProductException;
 use App\Domain\ValueObject\Money;
-use Symfony\Component\Uid\Uuid;
 
 class Product
 {
@@ -21,6 +20,7 @@ class Product
     private \DateTimeImmutable $updatedAt;
 
     public function __construct(
+        string $id,
         string $name,
         string $reference,
         string $description,
@@ -31,7 +31,7 @@ class Product
     {
         $this->validate($name, $reference, $stockQuantity);
 
-        $this->id = Uuid::v4()->toRfc4122();
+        $this->id = $id;
         $this->name = $name;
         $this->reference = $reference;
         $this->description = $description;

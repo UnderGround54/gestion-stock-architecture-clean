@@ -18,7 +18,6 @@ src/
 │   │   ├── Product/                 ← CreatProduct, ListerProducts, MettreAJourStock
 │   │   ├── Order/                   ← CreatOrder, ConfirmOrder
 │   │   └── Invoice/                 ← GenerateInvoice
-│   ├── DTO/Request/                 ← DTOs avec validations (#[Assert\...])
 │   └── Factory/                     ← OrderFactory, InvoiceFactory
 │
 ├── Infrastructure/                  ← Technique (Doctrine, Events, Mailer...)
@@ -29,7 +28,8 @@ src/
     ├── Controller/Api/              ← ProductController, OrderController...
     ├── Response/ApiResponse.php     ← Format JSON uniforme
     ├── Transformer/                 ← Domain Entity → Array JSON
-    └── EventListener/               ← GlobalExceptionListener
+    ├── EventListener/               ← GlobalExceptionListener
+    └── DTO/Request/                 ← DTOs avec validations (#[Assert\...])
 ```
 
 ---

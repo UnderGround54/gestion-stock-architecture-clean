@@ -2,8 +2,8 @@
 
 namespace App\Application\UseCase\Order;
 
-use App\Application\DTO\Request\PaginationDTO;
 use App\Domain\Model\Repository\OrderRepositoryInterface;
+use App\Presentation\DTO\Request\PaginationDTO;
 
 
 final readonly class ListOrdersUseCase

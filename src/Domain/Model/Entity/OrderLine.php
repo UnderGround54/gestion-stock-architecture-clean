@@ -3,7 +3,6 @@
 namespace App\Domain\Model\Entity;
 
 use App\Domain\ValueObject\Money;
-use Symfony\Component\Uid\Uuid;
 
 class OrderLine
 {
@@ -16,6 +15,7 @@ class OrderLine
     private Money $subTotal;
 
     public function __construct(
+        string $id,
         string $productId,
         string $productName,
         string $productReference,
@@ -23,7 +23,7 @@ class OrderLine
         Money  $unitPrice
     )
     {
-        $this->id = Uuid::v4()->toRfc4122();
+        $this->id = $id;
         $this->productId = $productId;
         $this->productName = $productName;
         $this->productReference = $productReference;

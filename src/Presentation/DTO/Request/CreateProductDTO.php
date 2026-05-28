@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Application\DTO\Request;
+namespace App\Presentation\DTO\Request;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class CreateProductDTO

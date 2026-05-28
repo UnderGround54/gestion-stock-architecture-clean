@@ -5,6 +5,7 @@ namespace App\Infrastructure\Persistence\Doctrine\Repository;
 use App\Domain\Enum\InvoiceStatus;
 use App\Domain\Model\Entity\Invoice;
 use App\Domain\Model\Repository\InvoiceRepositoryInterface;
+use App\Domain\Port\IdGeneratorInterface;
 use App\Domain\ValueObject\Money;
 use App\Infrastructure\Hydration\ReflectionHydrator;
 use Doctrine\DBAL\Connection;
@@ -16,6 +17,7 @@ final readonly class InvoiceDoctrineRepository extends AbstractDoctrineRepositor
     public function __construct(
         Connection $connection,
         private ReflectionHydrator $hydrator,
+        private IdGeneratorInterface $idGenerator,
     ) {
         parent::__construct($connection);
     }
@@ -41,6 +43,10 @@ final readonly class InvoiceDoctrineRepository extends AbstractDoctrineRepositor
             'paid_at'         => $invoice->getPaidAt()?->format('Y-m-d H:i:s'),
             'updated_at'      => $invoice->getUpdatedAt()->format('Y-m-d H:i:s'),
         ];
+        if (!$exists) {
+            $data['created_at'] = $invoice->getCreatedAt()->format('Y-m-d H:i:s');
+        }
+
 
         $this->upsert('invoices', $data, $exists);
     }
@@ -126,6 +132,7 @@ final readonly class InvoiceDoctrineRepository extends AbstractDoctrineRepositor
     private function hydrate(array $row): Invoice
     {
         $invoice = new Invoice(
+            $this->idGenerator->generate(),
             $row['order_id'],
             $row['client_id'],
             Money::of((float) $row['amount_excl_tax'], $row['currency']),

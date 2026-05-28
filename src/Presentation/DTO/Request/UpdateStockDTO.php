@@ -1,6 +1,7 @@
 <?php
 
-namespace App\Application\DTO\Request;
+namespace App\Presentation\DTO\Request;
+use App\Domain\Enum\StockOperation;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final readonly class UpdateStockDTO
@@ -18,6 +19,6 @@ final readonly class UpdateStockDTO
             choices: ['increase', 'decrease'],
             message: "L'opération doit être 'augmenter' ou 'diminuer'."
         )]
-        public string $operation
+        public StockOperation $operation,
     ) {}
 }

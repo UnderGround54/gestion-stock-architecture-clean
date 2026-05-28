@@ -6,6 +6,7 @@ use App\Domain\Enum\OrderStatus;
 use App\Domain\Model\Entity\Order;
 use App\Domain\Model\Entity\OrderLine;
 use App\Domain\Model\Repository\OrderRepositoryInterface;
+use App\Domain\Port\IdGeneratorInterface;
 use App\Domain\ValueObject\Money;
 use App\Infrastructure\Hydration\ReflectionHydrator;
 use Doctrine\DBAL\Connection;
@@ -17,6 +18,7 @@ final readonly class OrderDoctrineRepository extends AbstractDoctrineRepository 
     public function __construct(
         Connection $connection,
         private ReflectionHydrator $hydrator,
+        private IdGeneratorInterface $idGenerator,
     ) {
         parent::__construct($connection);
     }
@@ -37,6 +39,10 @@ final readonly class OrderDoctrineRepository extends AbstractDoctrineRepository 
             'customer_note' => $order->getCustomerNote(),
             'updated_at'    => $order->getUpdatedAt()->format('Y-m-d H:i:s'),
         ];
+
+        if (!$exists) {
+            $data['created_at'] = $order->getCreatedAt()->format('Y-m-d H:i:s');
+        }
 
         $this->upsert('orders', $data, $exists);
 
@@ -196,7 +202,8 @@ final readonly class OrderDoctrineRepository extends AbstractDoctrineRepository 
      */
     private function hydrate(array $row, array $lineRows): Order
     {
-        $order = new Order($row['client_id'], $row['customer_note'] ?? '');
+        $id = $this->idGenerator->generate();
+        $order = new Order($id, $row['client_id'], $row['customer_note'] ?? '');
 
         $this->hydrator->setMany($order, [
             'id'          => $row['id'],
@@ -217,6 +224,7 @@ final readonly class OrderDoctrineRepository extends AbstractDoctrineRepository 
     private function hydrateLine(array $row): OrderLine
     {
         $line = new OrderLine(
+            $this->idGenerator->generate(),
             $row['product_id'],
             $row['product_name'],
             $row['reference'],

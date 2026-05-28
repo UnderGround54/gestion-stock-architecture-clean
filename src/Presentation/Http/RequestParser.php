@@ -5,14 +5,12 @@ namespace App\Presentation\Http;
 use App\Presentation\Response\ApiResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final readonly class RequestParser
 {
     public function __construct(
-        private ValidatorInterface $validator,
-        private SerializerInterface $serializer
+        private ValidatorInterface $validator
     ) {}
 
     public function body(Request $request): array

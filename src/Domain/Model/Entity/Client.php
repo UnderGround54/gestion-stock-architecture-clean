@@ -3,7 +3,6 @@
 namespace App\Domain\Model\Entity;
 
 use App\Domain\Exception\ClientInvalidException;
-use Symfony\Component\Uid\Uuid;
 
 class Client
 {
@@ -21,6 +20,7 @@ class Client
     private array $orders = [];
 
     public function __construct(
+        string $id,
         string $lastName,
         string $firstName,
         string $email,
@@ -30,7 +30,7 @@ class Client
     {
         $this->validate($lastName, $firstName, $email);
 
-        $this->id = Uuid::v4()->toRfc4122();
+        $this->id = $id;
         $this->lastName = $lastName;
         $this->firstName = $firstName;
         $this->email = $email;

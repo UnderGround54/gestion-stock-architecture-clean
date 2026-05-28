@@ -2,16 +2,18 @@
 
 namespace App\Application\UseCase\Product;
 
-use App\Application\DTO\Request\CreateProductDTO;
 use App\Domain\Exception\InvalidProductException;
 use App\Domain\Model\Entity\Product;
 use App\Domain\Model\Repository\ProductRepositoryInterface;
+use App\Domain\Port\IdGeneratorInterface;
 use App\Domain\ValueObject\Money;
+use App\Presentation\DTO\Request\CreateProductDTO;
 
 final readonly class CreateProductUseCase
 {
     public function __construct(
-        private ProductRepositoryInterface $productRepository
+        private ProductRepositoryInterface $productRepository,
+        private IdGeneratorInterface $idGenerator
     ) {}
 
     public function execute(CreateProductDTO $dto): Product
@@ -24,6 +26,7 @@ final readonly class CreateProductUseCase
         }
 
         $product = new Product(
+            id:            $this->idGenerator->generate(),
             name:          $dto->name,
             reference:     $dto->reference,
             description:   $dto->description,

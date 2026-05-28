@@ -5,7 +5,6 @@ namespace App\Domain\Model\Entity;
 use App\Domain\Enum\InvoiceStatus;
 use App\Domain\Exception\InvoiceException;
 use App\Domain\ValueObject\Money;
-use Symfony\Component\Uid\Uuid;
 
 class Invoice
 {
@@ -24,6 +23,7 @@ class Invoice
     private \DateTimeImmutable $updatedAt;
 
     public function __construct(
+        string $id,
         string $orderId,
         string $clientId,
         Money  $amountExclTax,
@@ -31,7 +31,7 @@ class Invoice
         int    $dueInDays = 30
     )
     {
-        $this->id = Uuid::v4()->toRfc4122();
+        $this->id = $id;
         $this->number = $this->generateNumber();
         $this->orderId = $orderId;
         $this->clientId = $clientId;

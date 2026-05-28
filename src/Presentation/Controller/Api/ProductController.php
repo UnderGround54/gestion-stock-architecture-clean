@@ -2,13 +2,15 @@
 
 namespace App\Presentation\Controller\Api;
 
-use App\Application\DTO\Request\CreateProductDTO;
-use App\Application\DTO\Request\PaginationDTO;
-use App\Application\DTO\Request\UpdateStockDTO;
 use App\Application\UseCase\Product\CreateProductUseCase;
 use App\Application\UseCase\Product\GetProductUseCase;
 use App\Application\UseCase\Product\ListProductsUseCase;
 use App\Application\UseCase\Product\UpdateStockUseCase;
+use App\Domain\Enum\StockOperation;
+use App\Presentation\DTO\Request\CreateProductDTO;
+use App\Presentation\DTO\Request\PaginationDTO;
+use App\Presentation\DTO\Request\UpdateStockDTO;
+use App\Presentation\Http\RequestParser;
 use App\Presentation\Response\ApiResponse;
 use App\Presentation\Transformer\ResourceTransformer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,7 +18,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Presentation\Http\RequestParser;
 
 #[Route('/api/v1/products', name: 'api_products_')]
 final class ProductController extends AbstractController
@@ -33,8 +34,8 @@ final class ProductController extends AbstractController
     public function list(Request $request): JsonResponse
     {
         $pagination = new PaginationDTO(
-            page:  max(1, (int) $request->query->get('page', 1)),
-            limit: min(100, max(1, (int) $request->query->get('limit', 10)))
+            page: (int) $request->query->get('page', 1),
+            limit: (int) $request->query->get('limit', 10)
         );
 
         $result = $this->listProducts->execute($pagination);
@@ -78,7 +79,7 @@ final class ProductController extends AbstractController
         $dto = new UpdateStockDTO(
             productId:  $id,
             quantity:   (int) ($body['quantity']  ?? 0),
-            operation:  $body['operation']        ?? ''
+            operation:  StockOperation::DECREASE
         );
 
         if ($error = $this->parser->validate($dto)) {

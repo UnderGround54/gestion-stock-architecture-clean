@@ -5,7 +5,6 @@ namespace App\Domain\Model\Entity;
 use App\Domain\Enum\OrderStatus;
 use App\Domain\Exception\OrderException;
 use App\Domain\ValueObject\Money;
-use Symfony\Component\Uid\Uuid;
 
 class Order
 {
@@ -22,9 +21,9 @@ class Order
     private \DateTimeImmutable $createdAt;
     private \DateTimeImmutable $updatedAt;
 
-    public function __construct(string $clientId, string $customerNote = '')
+    public function __construct(string $id, string $clientId, string $customerNote = '')
     {
-        $this->id = Uuid::v4()->toRfc4122();
+        $this->id = $id;
         $this->number = $this->generateNumber();
         $this->clientId = $clientId;
         $this->status = OrderStatus::PENDING;
@@ -110,7 +109,7 @@ class Order
 
     private function generateNumber(): string
     {
-        return 'CMD-' . date('Ymd') . '-' . strtoupper(substr(Uuid::v4()->toRfc4122(), 0, 8));
+        return 'CMD-' . date('Ymd') . '-' . strtoupper(substr($this->id, 0, 8));
     }
 
     // --- Getters ---

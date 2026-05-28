@@ -3,21 +3,27 @@
 namespace App\Application\Factory;
 
 
-use App\Application\DTO\Request\OrderLineDTO;
 use App\Domain\Model\Entity\Order;
 use App\Domain\Model\Entity\OrderLine;
 use App\Domain\Model\Entity\Product;
+use App\Domain\Port\IdGeneratorInterface;
+use App\Presentation\DTO\Request\OrderLineDTO;
 
-final class OrderFactory
+final readonly class OrderFactory
 {
+    public function __construct(
+        private IdGeneratorInterface $idGenerator,
+    ) {}
+
     public function createOrder(string $clientId, string $customerNote = ''): Order
     {
-        return new Order($clientId, $customerNote);
+        return new Order($this->idGenerator->generate() , $clientId, $customerNote);
     }
 
     public function createLine(Product $product, OrderLineDTO $dto): OrderLine
     {
         return new OrderLine(
+            id:               $this->idGenerator->generate(),
             productId:        $product->getId(),
             productName:      $product->getName(),
             productReference: $product->getReference(),

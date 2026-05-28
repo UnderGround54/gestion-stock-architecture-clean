@@ -4,6 +4,7 @@ namespace App\Infrastructure\Persistence\Doctrine\Repository;
 
 use App\Domain\Model\Entity\Product;
 use App\Domain\Model\Repository\ProductRepositoryInterface;
+use App\Domain\Port\IdGeneratorInterface;
 use App\Domain\ValueObject\Money;
 use App\Infrastructure\Hydration\ReflectionHydrator;
 use Doctrine\DBAL\Connection;
@@ -15,6 +16,7 @@ final readonly class ProductDoctrineRepository extends AbstractDoctrineRepositor
     public function __construct(
         Connection $connection,
         private ReflectionHydrator $hydrator,
+        private IdGeneratorInterface $idGenerator,
     ) {
         parent::__construct($connection);
     }
@@ -37,6 +39,10 @@ final readonly class ProductDoctrineRepository extends AbstractDoctrineRepositor
             'is_active'      => (int) $product->isActive(),
             'updated_at'     => $product->getUpdatedAt()->format('Y-m-d H:i:s'),
         ];
+
+        if (!$exists) {
+            $data['created_at'] = $product->getCreatedAt()->format('Y-m-d H:i:s');
+        }
 
         $this->upsert('products', $data, $exists);
     }
@@ -135,6 +141,7 @@ final readonly class ProductDoctrineRepository extends AbstractDoctrineRepositor
     private function hydrate(array $row): Product
     {
         $product = new Product(
+            id:            $this->idGenerator->generate(),
             name:          $row['name'],
             reference:     $row['reference'],
             description:   $row['description'],

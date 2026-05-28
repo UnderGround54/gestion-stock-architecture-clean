@@ -2,18 +2,18 @@
 
 namespace App\Presentation\Controller\Api;
 
-use App\Application\DTO\Request\GenerateInvoiceDTO;
-use App\Application\DTO\Request\PaginationDTO;
 use App\Application\UseCase\Invoice\GenerateInvoiceUseCase;
 use App\Application\UseCase\Invoice\GetInvoiceUseCase;
 use App\Application\UseCase\Invoice\ListInvoicesUseCase;
 use App\Application\UseCase\Invoice\PayInvoiceUseCase;
-use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
+use App\Presentation\DTO\Request\GenerateInvoiceDTO;
+use App\Presentation\DTO\Request\PaginationDTO;
 use App\Presentation\Response\ApiResponse;
 use App\Presentation\Transformer\ResourceTransformer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/v1/invoices', name: 'api_invoices_')]
@@ -30,8 +30,8 @@ final class InvoiceController extends AbstractController
     public function list(Request $request): JsonResponse
     {
         $pagination = new PaginationDTO(
-            page:  max(1, (int) $request->query->get('page', 1)),
-            limit: min(100, max(1, (int) $request->query->get('limit', 10)))
+            page:  (int) $request->query->get('page', 1),
+            limit: (int) $request->query->get('limit', 10)
         );
 
         $result = $this->listInvoices->execute($pagination);

@@ -2,12 +2,13 @@
 
 namespace App\Application\UseCase\Product;
 
-use App\Application\DTO\Request\UpdateStockDTO;
+use App\Domain\Enum\StockOperation;
 use App\Domain\Event\InsufficientStockEvent;
 use App\Domain\Exception\ProductNotFoundException;
 use App\Domain\Model\Entity\Product;
 use App\Domain\Model\Repository\ProductRepositoryInterface;
-use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
+use App\Domain\Port\EventDispatcherInterface;
+use App\Presentation\DTO\Request\UpdateStockDTO;
 
 final readonly class UpdateStockUseCase
 {
@@ -27,8 +28,8 @@ final readonly class UpdateStockUseCase
         }
 
         match ($dto->operation) {
-            'increase' => $product->increaseStock($dto->quantity),
-            'decrease' => $product->decreaseStock($dto->quantity),
+            StockOperation::INCREASE => $product->increaseStock($dto->quantity),
+            StockOperation::DECREASE => $product->decreaseStock($dto->quantity),
         };
 
         $this->productRepository->save($product);

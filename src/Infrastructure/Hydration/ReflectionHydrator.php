@@ -11,6 +11,7 @@ use ReflectionException;
  */
 final class ReflectionHydrator
 {
+    /** @var array<class-string, ReflectionClass<object>> */
     private array $cache = [];
 
     /**

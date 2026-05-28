@@ -6,7 +6,7 @@ use App\Domain\Event\OrderConfirmedEvent;
 use App\Domain\Exception\OrderNotFoundException;
 use App\Domain\Model\Entity\Order;
 use App\Domain\Model\Repository\OrderRepositoryInterface;
-use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
+use App\Domain\Port\EventDispatcherInterface;
 
 
 final readonly class ConfirmOrderUseCase

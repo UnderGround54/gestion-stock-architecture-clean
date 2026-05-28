@@ -2,8 +2,8 @@
 
 namespace App\Application\UseCase\Product;
 
-use App\Application\DTO\Request\PaginationDTO;
 use App\Domain\Model\Repository\ProductRepositoryInterface;
+use App\Presentation\DTO\Request\PaginationDTO;
 
 
 final readonly class ListProductsUseCase

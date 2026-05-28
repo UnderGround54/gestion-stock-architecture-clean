@@ -2,18 +2,18 @@
 
 namespace App\Presentation\Controller\Api;
 
-use App\Application\DTO\Request\CreateClientDTO;
-use App\Application\DTO\Request\PaginationDTO;
 use App\Application\UseCase\Client\CreateClientUseCase;
 use App\Application\UseCase\Client\DisableClientUseCase;
 use App\Application\UseCase\Client\GetClientUseCase;
 use App\Application\UseCase\Client\ListClientsUseCase;
-use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
+use App\Presentation\DTO\Request\CreateClientDTO;
+use App\Presentation\DTO\Request\PaginationDTO;
 use App\Presentation\Response\ApiResponse;
 use App\Presentation\Transformer\ResourceTransformer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/v1/clients', name: 'api_clients_')]
@@ -30,8 +30,8 @@ final class ClientController extends AbstractController
     public function list(Request $request): JsonResponse
     {
         $pagination = new PaginationDTO(
-            page:  max(1, (int) $request->query->get('page', 1)),
-            limit: min(100, max(1, (int) $request->query->get('limit', 10)))
+            page: (int) $request->query->get('page', 1),
+            limit: (int) $request->query->get('limit', 10)
         );
         $result = $this->listClients->execute($pagination);
 

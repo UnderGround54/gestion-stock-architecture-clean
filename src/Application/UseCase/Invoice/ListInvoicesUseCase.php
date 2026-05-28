@@ -2,8 +2,8 @@
 
 namespace App\Application\UseCase\Invoice;
 
-use App\Application\DTO\Request\PaginationDTO;
 use App\Domain\Model\Repository\InvoiceRepositoryInterface;
+use App\Presentation\DTO\Request\PaginationDTO;
 
 
 final readonly class ListInvoicesUseCase

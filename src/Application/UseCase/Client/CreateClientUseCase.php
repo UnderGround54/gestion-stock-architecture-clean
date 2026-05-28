@@ -2,15 +2,17 @@
 
 namespace App\Application\UseCase\Client;
 
-use App\Application\DTO\Request\CreateClientDTO;
 use App\Domain\Exception\ClientAlreadyExistsException;
 use App\Domain\Model\Entity\Client;
 use App\Domain\Model\Repository\ClientRepositoryInterface;
+use App\Domain\Port\IdGeneratorInterface;
+use App\Presentation\DTO\Request\CreateClientDTO;
 
 final readonly class CreateClientUseCase
 {
     public function __construct(
         private ClientRepositoryInterface $repository,
+        private IdGeneratorInterface $idGenerator
     ) {}
 
     /**
@@ -24,7 +26,10 @@ final readonly class CreateClientUseCase
             );
         }
 
+        $id = $this->idGenerator->generate();
+
         $client = new Client(
+            $id,
             $dto->lastName,
             $dto->firstName,
             $dto->email,
