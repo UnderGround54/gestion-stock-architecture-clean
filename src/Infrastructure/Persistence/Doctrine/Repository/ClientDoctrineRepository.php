@@ -4,7 +4,6 @@ namespace App\Infrastructure\Persistence\Doctrine\Repository;
 
 use App\Domain\Model\Entity\Client;
 use App\Domain\Model\Repository\ClientRepositoryInterface;
-use App\Domain\Port\IdGeneratorInterface;
 use App\Infrastructure\Hydration\ReflectionHydrator;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
@@ -14,8 +13,7 @@ final readonly class ClientDoctrineRepository extends AbstractDoctrineRepository
 {
     public function __construct(
         Connection $connection,
-        private ReflectionHydrator $hydrator,
-        private IdGeneratorInterface $idGenerator,
+        private ReflectionHydrator $hydrator
     ) {
         parent::__construct($connection);
     }
@@ -121,9 +119,8 @@ final readonly class ClientDoctrineRepository extends AbstractDoctrineRepository
      */
     private function hydrate(array $row): Client
     {
-        $id = $this->idGenerator->generate();
         $client = new Client(
-            $id,
+            $row['id'],
             $row['last_name'],
             $row['first_name'],
             $row['email'],

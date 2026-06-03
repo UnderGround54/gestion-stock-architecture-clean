@@ -3,16 +3,17 @@
 namespace App\Application\UseCase\Invoice;
 
 use App\Domain\Exception\InvoiceNotFoundException;
+use App\Domain\Model\Entity\Invoice;
 use App\Domain\Model\Repository\InvoiceRepositoryInterface;
 
 readonly class PayInvoiceUseCase
 {
 
     public function __construct(
-        private invoiceRepositoryInterface $invoiceRepository
+        private InvoiceRepositoryInterface $invoiceRepository
     ){}
 
-    public function execute(string $id)
+    public function execute(string $id) : Invoice
     {
         $invoice = $this->invoiceRepository->findById($id);
 

@@ -4,7 +4,6 @@ namespace App\Infrastructure\Persistence\Doctrine\Repository;
 
 use App\Domain\Model\Entity\Product;
 use App\Domain\Model\Repository\ProductRepositoryInterface;
-use App\Domain\Port\IdGeneratorInterface;
 use App\Domain\ValueObject\Money;
 use App\Infrastructure\Hydration\ReflectionHydrator;
 use Doctrine\DBAL\Connection;
@@ -15,8 +14,7 @@ final readonly class ProductDoctrineRepository extends AbstractDoctrineRepositor
 {
     public function __construct(
         Connection $connection,
-        private ReflectionHydrator $hydrator,
-        private IdGeneratorInterface $idGenerator,
+        private ReflectionHydrator $hydrator
     ) {
         parent::__construct($connection);
     }
@@ -141,7 +139,7 @@ final readonly class ProductDoctrineRepository extends AbstractDoctrineRepositor
     private function hydrate(array $row): Product
     {
         $product = new Product(
-            id:            $this->idGenerator->generate(),
+            id:            $row['id'],
             name:          $row['name'],
             reference:     $row['reference'],
             description:   $row['description'],

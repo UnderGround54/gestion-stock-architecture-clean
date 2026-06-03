@@ -76,7 +76,7 @@ PATCH  /api/v1/orders/{id}/confirm → Confirm
 ```
 GET    /api/v1/invoices              → Liste paginée
 GET    /api/v1/invoices/{id}         → Détail
-POST   /api/v1/invoices/orders/{commandeId}/generate → Générer
+POST   /api/v1/invoices/orders/{orderId}/generate → Générer
 PATCH  /api/v1/invoices/{id}/pay   → Marquer payée
 ```
 

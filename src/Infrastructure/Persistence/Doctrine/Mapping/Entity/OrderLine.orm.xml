@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping
+    xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                        https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <entity name="App\Domain\Model\Entity\OrderLine" table="order_lines">
+
+        <id name="id" type="string"/>
+
+        <field name="productId"        type="string"  column="product_id"/>
+        <field name="productName"      type="string"  column="product_name"/>
+        <field name="productReference" type="string"  column="product_reference"/>
+        <field name="quantity"         type="integer"/>
+
+        <embedded name="unitPrice" class="App\Domain\ValueObject\Money" column-prefix="unit_price_"/>
+        <embedded name="subTotal"  class="App\Domain\ValueObject\Money" column-prefix="sub_total_"/>
+
+    </entity>
+
+</doctrine-mapping>

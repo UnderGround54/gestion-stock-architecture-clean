@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<doctrine-mapping
+    xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                        https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <entity name="App\Domain\Model\Entity\Invoice" table="invoices">
+
+        <id name="id" type="string"/>
+
+        <field name="number" type="string"/>
+        <field name="status" type="string"/>
+        <field name="clientId" type="string" column="client_id"/>
+        <field name="orderId" type="string" column="order_id"/>
+
+        <embedded name="amountExclTax" class="App\Domain\ValueObject\Money" column-prefix="excl_tax_"/>
+        <embedded name="taxAmount" class="App\Domain\ValueObject\Money" column-prefix="tax_"/>
+        <embedded name="amountInclTax" class="App\Domain\ValueObject\Money" column-prefix="incl_tax_"/>
+
+        <field name="taxRate" type="float" column="tax_rate"/>
+        <field name="dueDate" type="datetime_immutable" column="due_date"/>
+        <field name="paidAt" type="datetime_immutable" nullable="true" column="paid_at"/>
+        <field name="createdAt" type="datetime_immutable" column="created_at"/>
+        <field name="updatedAt" type="datetime_immutable" column="updated_at"/>
+
+    </entity>
+
+</doctrine-mapping>
