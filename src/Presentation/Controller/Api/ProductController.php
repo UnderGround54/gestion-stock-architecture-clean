@@ -76,10 +76,14 @@ final class ProductController extends AbstractController
     {
         $body = $this->parser->body($request);
 
+        $operation = StockOperation::tryFrom($body['operation'] ?? '')
+            ?? StockOperation::INCREASE;
+
+
         $dto = new UpdateStockDTO(
             productId:  $id,
             quantity:   (int) ($body['quantity']  ?? 0),
-            operation:  StockOperation::DECREASE
+            operation:  $operation,
         );
 
         if ($error = $this->parser->validate($dto)) {

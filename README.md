@@ -4,24 +4,34 @@
 
 ```
 src/
-├── Domain/                          ← Cœur métier pur (0 dépendance externe)
-│   ├── Entity/                      ← Product, Client, Order, OrderLine, Invoice
+├── Domain/                          ← Cœur métier pur (0 dépendance externe)                 
 │   ├── ValueObject/                 ← Money
 │   ├── Enum/                        ← StatusOrder, StatusInvoice
 │   ├── Event/                       ← OrderCreatEvent, InvoiceCreatEvent...
 │   ├── Exception/                   ← Exceptions métier typées
-│   ├── Repository/                  ← Interfaces uniquement
+│   ├── Model/
+│   │   ├── Entity/                  ← Product, Client, Order, OrderLine, Invoice
+│   │   └── Repository/              ← Interfaces uniquement
 │   └── Service/                     ← Services métier purs
 │
 ├── Application/                     ← Orchestration des règles
 │   ├── UseCase/                     ← Un UseCase = une action métier
-│   │   ├── Product/                 ← CreatProduct, ListerProducts, MettreAJourStock
-│   │   ├── Order/                   ← CreatOrder, ConfirmOrder
-│   │   └── Invoice/                 ← GenerateInvoice
+│   │   ├── Product/                 ← CreatProductUseCase, ListProductsUseCase, UpdateStockUseCase, ...
+│   │   ├── Order/                   ← CreatOrderUseCase, ConfirmOrderUseCase
+│   │   ├── Client/                  ← CreatClientUseCase, DisableClientUseCase, GetClientUseCase, ...
+│   │   └── Invoice/                 ← GenerateInvoiceUseCase, ...
 │   └── Factory/                     ← OrderFactory, InvoiceFactory
 │
 ├── Infrastructure/                  ← Technique (Doctrine, Events, Mailer...)
-│   ├── Persistence/Doctrine/        ← Implémentations des Repository interfaces
+│   ├── EventDispatcher/
+│   ├── Hydration/
+│   ├── Service/ 
+│   ├── Persistence/        
+│   │   └── Doctrine/                
+│   │       ├── Mapping/             ← Mapping avec les fichiers xml pour les migrations
+│   │       │   ├── Entity/          
+│   │       │   └── ValueObject/
+│   │       └── Repository/          ← Implémentations des Repository interfaces
 │   └── EventListener/               ← NotificationEventListener
 │
 └── Presentation/                    ← HTTP In/Out
@@ -200,15 +210,15 @@ Content-Type: application/json
 ## Flux complet : Order → Invoice
 
 ```
-1. POST /api/v1/clients          → Créer le client
-2. POST /api/v1/products         → Créer les products avec stock
-3. POST /api/v1/orders        → Créer la commande (stock décrémenté automatiquement)
-                                    → Event: OrderCreatEvent dispatché
-4. PATCH /orders/{id}/confirmer → Confirm la commande
-                                    → Event: OrderConfirmeeEvent dispatché
-5. POST /invoices/orders/{id}/generer → Générer la facture
-                                    → Event: InvoiceCreatEvent dispatché
-6. PATCH /invoices/{id}/payer    → Marquer la facture payée
+1. POST /api/v1/clients                → Créer le client
+2. POST /api/v1/products               → Créer les products avec stock
+3. POST /api/v1/orders                 → Créer la commande (stock décrémenté automatiquement)
+                                       → Event: OrderCreatEvent dispatché
+4. PATCH /orders/{id}/confirm          → Confirm la commande
+                                       → Event: OrderConfirmeeEvent dispatché
+5. POST /invoices/orders/{id}/generate → Générer la facture
+                                       → Event: InvoiceCreatEvent dispatché
+6. PATCH /invoices/{id}/pay            → Marquer la facture payée
 ```
 
 ---

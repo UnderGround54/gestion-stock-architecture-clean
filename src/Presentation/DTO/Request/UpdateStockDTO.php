@@ -16,7 +16,7 @@ final readonly class UpdateStockDTO
 
         #[Assert\NotBlank]
         #[Assert\Choice(
-            choices: ['increase', 'decrease'],
+            choices: [StockOperation::INCREASE , StockOperation::DECREASE],
             message: "L'opération doit être 'augmenter' ou 'diminuer'."
         )]
         public StockOperation $operation,

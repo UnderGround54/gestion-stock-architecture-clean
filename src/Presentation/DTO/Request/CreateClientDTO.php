@@ -19,7 +19,12 @@ final readonly class CreateClientDTO
         public string $email,
 
         #[Assert\NotBlank(message: "Le téléphone est obligatoire.")]
-        #[Assert\Length(min: 8, max: 20)]
+        #[Assert\Length(
+            min: 8,
+            max: 12,
+            minMessage: 'Le numéro téléphone doit être entre 8 et 20 caractères',
+            maxMessage: 'Le numéro téléphone doit être entre 8 et 20 caractères'
+        )]
         public string $phone,
 
         #[Assert\NotBlank(message: "L'adresse est obligatoire.")]

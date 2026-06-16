@@ -30,11 +30,11 @@ final readonly class ProductDoctrineRepository extends AbstractDoctrineRepositor
             'name'           => $product->getName(),
             'reference'      => $product->getReference(),
             'description'    => $product->getDescription(),
-            'price'          => $product->getPrice()->amount(),
-            'currency'       => $product->getPrice()->currency(),
+            'price_amount'   => $product->getPrice()->amount(),
+            'price_currency' => $product->getPrice()->currency(),
             'stock_quantity' => $product->getStockQuantity(),
             'minimum_stock'  => $product->getMinimumStock(),
-            'is_active'      => (int) $product->isActive(),
+            'active'         => (int) $product->isActive(),
             'updated_at'     => $product->getUpdatedAt()->format('Y-m-d H:i:s'),
         ];
 
@@ -101,7 +101,7 @@ final readonly class ProductDoctrineRepository extends AbstractDoctrineRepositor
     {
         $offset = ($page - 1) * $limit;
         $rows   = $this->connection->fetchAllAssociative(
-            'SELECT * FROM products WHERE is_active = 1 ORDER BY name ASC LIMIT ? OFFSET ?',
+            'SELECT * FROM products WHERE active = 1 ORDER BY name ASC LIMIT ? OFFSET ?',
             [$limit, $offset],
             [ParameterType::INTEGER, ParameterType::INTEGER]
         );
@@ -143,7 +143,7 @@ final readonly class ProductDoctrineRepository extends AbstractDoctrineRepositor
             name:          $row['name'],
             reference:     $row['reference'],
             description:   $row['description'],
-            price:         Money::of((float) $row['price'], $row['currency']),
+            price:         Money::of((float) $row['price_amount'], $row['price_currency']),
             stockQuantity: (int) $row['stock_quantity'],
             minimumStock:  (int) $row['minimum_stock']
         );
@@ -154,8 +154,8 @@ final readonly class ProductDoctrineRepository extends AbstractDoctrineRepositor
             'updatedAt' => new \DateTimeImmutable($row['updated_at']),
         ]);
 
-        if (!(bool) $row['is_active']) {
-            $this->hydrator->set($product, 'isActive', false);
+        if (!(bool) $row['active']) {
+            $this->hydrator->set($product, 'active', false);
         }
 
         return $product;
