@@ -19,7 +19,6 @@
         <field name="customerNote" type="string" nullable="true" column="customer_note"/>
         <field name="createdAt" type="datetime_immutable" column="created_at"/>
         <field name="updatedAt" type="datetime_immutable" column="updated_at"/>
-        <field name="orderLines" type="string" column="order_lines"/>
 
     </entity>
 </doctrine-mapping>

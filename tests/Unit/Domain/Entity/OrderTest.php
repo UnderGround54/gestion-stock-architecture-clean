@@ -26,6 +26,7 @@ final class OrderTest extends TestCase
     {
         return new OrderLine(
             id:               'line-uuid-001',
+            orderId:          'order-uuid-001',
             productId:        'prod-uuid-001',
             productName:      'Widget',
             productReference: 'REF-001',

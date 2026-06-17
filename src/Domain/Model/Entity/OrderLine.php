@@ -8,6 +8,7 @@ class OrderLine
 {
     private string $id;
     private string $productId;
+    private string $orderId;
     private string $productName;
     private string $productReference;
     private int $quantity;
@@ -16,6 +17,7 @@ class OrderLine
 
     public function __construct(
         string $id,
+        string $orderId,
         string $productId,
         string $productName,
         string $productReference,
@@ -24,6 +26,7 @@ class OrderLine
     )
     {
         $this->id = $id;
+        $this->orderId = $orderId;
         $this->productId = $productId;
         $this->productName = $productName;
         $this->productReference = $productReference;
@@ -35,6 +38,11 @@ class OrderLine
     public function getId(): string
     {
         return $this->id;
+    }
+
+    public function getOrderId(): int
+    {
+        return $this->orderId;
     }
 
     public function getProductId(): string

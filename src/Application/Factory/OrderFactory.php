@@ -20,10 +20,11 @@ final readonly class OrderFactory
         return new Order($this->idGenerator->generate() , $clientId, $customerNote);
     }
 
-    public function createLine(Product $product, OrderLineDTO $dto): OrderLine
+    public function createLine(Product $product, OrderLineDTO $dto, Order $order): OrderLine
     {
         return new OrderLine(
             id:               $this->idGenerator->generate(),
+            orderId:          $order->getId(),
             productId:        $product->getId(),
             productName:      $product->getName(),
             productReference: $product->getReference(),

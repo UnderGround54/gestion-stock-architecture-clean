@@ -99,7 +99,7 @@ PATCH  /api/v1/invoices/{id}/pay   → Marquer payée
 {
   "success": true,
   "code": 200,
-  "message": "ProductOrm récupéré.",
+  "message": "Product récupéré.",
   "data": {
     "id": "uuid",
     "nom": "Riz Vary Gasy",
@@ -170,13 +170,13 @@ POST /api/v1/products
 Content-Type: application/json
 
 {
-  "nom": "Riz Vary Gasy",
+  "name": "Riz Vary Gasy",
   "reference": "RIZ-001",
   "description": "Riz local de qualité supérieure",
-  "prix": 5000,
-  "quantite_stock": 200,
-  "stock_minimum": 20,
-  "devise": "MGA"
+  "price": 500.0,
+  "stockQuantity": 200,
+  "minimumStock": 20,
+  "currency": "MGA"
 }
 ```
 

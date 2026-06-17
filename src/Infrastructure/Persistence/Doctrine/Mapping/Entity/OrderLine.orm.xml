@@ -9,6 +9,7 @@
 
         <id name="id" type="string"/>
 
+        <field name="orderId"          type="string"  column="order_id"/>
         <field name="productId"        type="string"  column="product_id"/>
         <field name="productName"      type="string"  column="product_name"/>
         <field name="productReference" type="string"  column="product_reference"/>

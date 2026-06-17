@@ -33,7 +33,7 @@ final readonly class OrderDoctrineRepository extends AbstractDoctrineRepository 
             'client_id'     => $order->getClientId(),
             'status'        => $order->getStatus()->value,
             'total_amount'  => $order->getTotalAmount()->amount(),
-            'currency'      => $order->getTotalAmount()->currency(),
+            'total_currency'=> $order->getTotalAmount()->currency(),
             'customer_note' => $order->getCustomerNote(),
             'updated_at'    => $order->getUpdatedAt()->format('Y-m-d H:i:s'),
         ];
@@ -69,11 +69,12 @@ final readonly class OrderDoctrineRepository extends AbstractDoctrineRepository 
             'order_id'     => $orderId,
             'product_id'   => $line->getProductId(),
             'product_name' => $line->getProductName(),
-            'reference'    => $line->getProductReference(),
+            'product_reference' => $line->getProductReference(),
             'quantity'     => $line->getQuantity(),
-            'unit_price'   => $line->getUnitPrice()->amount(),
-            'currency'     => $line->getUnitPrice()->currency(),
-            'sub_total'    => $line->getSubTotal()->amount(),
+            'unit_price_amount' => $line->getUnitPrice()->amount(),
+            'unit_price_currency' => $line->getUnitPrice()->currency(),
+            'sub_total_amount' => $line->getSubTotal()->amount(),
+            'sub_total_currency' => $line->getSubTotal()->currency(),
         ]);
     }
 
@@ -222,6 +223,7 @@ final readonly class OrderDoctrineRepository extends AbstractDoctrineRepository 
     {
         $line = new OrderLine(
             $row['id'],
+            $row['order_id'],
             $row['product_id'],
             $row['product_name'],
             $row['reference'],
