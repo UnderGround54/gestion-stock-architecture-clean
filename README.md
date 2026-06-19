@@ -102,16 +102,19 @@ PATCH  /api/v1/invoices/{id}/pay   → Marquer payée
   "message": "Product récupéré.",
   "data": {
     "id": "uuid",
-    "nom": "Riz Vary Gasy",
+    "name": "Riz Vary Gasy",
     "reference": "RIZ-001",
-    "prix": { "amount": 5000.00, "currency": "MGA" },
+    "price": { "amount": 5000.00, "currency": "MGA" },
     "stock": {
-      "quantite": 150,
+      "quantity": 150,
       "minimum": 10,
-      "disponible": true,
-      "sous_minimum": false,
-      "rupture": false
-    }
+      "available": true,
+      "below_minimum": false,
+      "out_of_stock": false
+    },
+    "is_active": true,
+    "created_at": "2026-06-16T11:56:50+00:00",
+    "updated_at": "2026-06-16T12:59:24+00:00"
   }
 }
 ```
@@ -144,8 +147,8 @@ PATCH  /api/v1/invoices/{id}/pay   → Marquer payée
   "message": "Données invalides.",
   "data": null,
   "errors": {
-    "nom": ["Le nom est obligatoire."],
-    "prix": ["Le prix doit être positif."]
+    "name": ["Le nom est obligatoire."],
+    "price": ["Le prix doit être positif."]
   }
 }
 ```
@@ -187,17 +190,17 @@ Content-Type: application/json
 
 {
   "client_id": "uuid-client",
-  "note_client": "Livraison avant 12h",
-  "lignes": [
-    { "produit_id": "uuid-produit-1", "quantite": 3 },
-    { "produit_id": "uuid-produit-2", "quantite": 1 }
+  "customer_note": "Livraison avant 12h",
+  "order_lines": [
+    { "product_id": "uuid-produit-1", "quantity": 3 },
+    { "product_id": "uuid-produit-2", "quantity": 1 }
   ]
 }
 ```
 
 ### Générer une facture
 ```bash
-POST /api/v1/invoices/orders/{commandeId}/generer
+POST /api/v1/invoices/orders/{orderId}/generate
 Content-Type: application/json
 
 {

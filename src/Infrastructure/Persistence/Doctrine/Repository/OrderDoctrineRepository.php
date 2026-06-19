@@ -207,7 +207,7 @@ final readonly class OrderDoctrineRepository extends AbstractDoctrineRepository 
             'id'          => $row['id'],
             'number'      => $row['number'],
             'status'      => OrderStatus::from($row['status']),
-            'totalAmount' => Money::of((float) $row['total_amount'], $row['currency']),
+            'totalAmount' => Money::of((float) $row['total_amount'], $row['total_currency']),
             'createdAt'   => new \DateTimeImmutable($row['created_at']),
             'updatedAt'   => new \DateTimeImmutable($row['updated_at']),
             'orderLines'  => array_map(fn($l) => $this->hydrateLine($l), $lineRows),
@@ -226,9 +226,9 @@ final readonly class OrderDoctrineRepository extends AbstractDoctrineRepository 
             $row['order_id'],
             $row['product_id'],
             $row['product_name'],
-            $row['reference'],
+            $row['product_reference'],
             (int) $row['quantity'],
-            Money::of((float) $row['unit_price'], $row['currency'])
+            Money::of((float) $row['unit_price_amount'], $row['unit_price_currency'])
         );
 
         $this->hydrator->set($line, 'id', $row['id']);

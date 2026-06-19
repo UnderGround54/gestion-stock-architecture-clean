@@ -95,7 +95,7 @@ class Invoice
 
     private function generateNumber(): string
     {
-        return 'FAC-' . date('Ymd') . '-' . strtoupper(substr(Uuid::v4()->toRfc4122(), 0, 8));
+        return 'FAC-' . date('Ymd') . '-' . strtoupper(substr($this->id, 0, 8));
     }
 
     // --- Getters ---
