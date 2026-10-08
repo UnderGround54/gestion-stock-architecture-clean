@@ -16,7 +16,6 @@ use App\Presentation\Transformer\ResourceTransformer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/v1/products', name: 'api_products_')]
@@ -24,9 +23,9 @@ final class ProductController extends AbstractController
 {
     public function __construct(
         private readonly CreateProductUseCase $createProduct,
-        private readonly ListProductsUseCase  $listProducts,
-        private readonly UpdateStockUseCase   $updateStock,
         private readonly GetProductUseCase    $getProduct,
+        private readonly ListProductsUseCase  $listProduct,
+        private readonly UpdateStockUseCase   $updateStock,
         private readonly RequestParser        $parser,
     ) {}
 
@@ -35,10 +34,12 @@ final class ProductController extends AbstractController
     {
         $pagination = new PaginationDTO(
             page: (int) $request->query->get('page', 1),
-            limit: (int) $request->query->get('limit', 10)
+            limit: (int) $request->query->get('limit', 10),
+            sort: $request->query->get('sort', null),
+            filters: json_decode($request->query->get('filters', '{}'), true) ?? []
         );
 
-        $result = $this->listProducts->execute($pagination);
+        $result = $this->listProduct->execute($pagination);
 
         return ApiResponse::paginated(
             items:   array_map(ResourceTransformer::product(...), $result['items']),

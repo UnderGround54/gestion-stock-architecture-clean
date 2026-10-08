@@ -14,8 +14,13 @@ final readonly class ListClientsUseCase
 
     public function execute(PaginationDTO $pagination): array
     {
-        $clients = $this->clientRepository->findAll($pagination->page, $pagination->limit);
-        $total    = $this->clientRepository->countAll();
+        $clients = $this->clientRepository->findAll(
+            $pagination->page,
+            $pagination->limit,
+            $pagination->getSort(),
+            $pagination->filters
+        );
+        $total    = $this->clientRepository->countAll($pagination->filters);
 
         return [
             'items'       => $clients,
@@ -26,4 +31,3 @@ final readonly class ListClientsUseCase
         ];
     }
 }
-

@@ -101,8 +101,6 @@ final readonly class OrderDoctrineRepository extends AbstractDoctrineRepository 
     }
 
     /**
-     * Loads all orders for a client in 2 queries instead of N+1.
-     *
      * @throws Exception
      */
     public function findByClientId(string $clientId, int $page, int $limit): array
@@ -129,28 +127,87 @@ final readonly class OrderDoctrineRepository extends AbstractDoctrineRepository 
     }
 
     /**
-     * Loads all orders in 2 queries instead of N+1.
+     * Loads all orders with advanced pagination, sorting and filtering.
      *
      * @throws Exception
      */
-    public function findAll(int $page, int $limit): array
+    public function findAll(int $page, int $limit, ?array $sort = null, array $filters = []): array
     {
         $offset = ($page - 1) * $limit;
-        $rows   = $this->connection->fetchAllAssociative(
-            'SELECT * FROM orders ORDER BY created_at DESC LIMIT ? OFFSET ?',
-            [$limit, $offset],
-            [ParameterType::INTEGER, ParameterType::INTEGER]
-        );
+
+        // Construire la requête WHERE dynamique basée sur les filtres
+        $whereConditions = [];
+        $parameters = [];
+
+        foreach ($filters as $field => $value) {
+            // Pour l'instant, on supporte seulement l'égalité exacte
+            $whereConditions[] = "$field = ?";
+            $parameters[] = $value;
+        }
+
+        $whereClause = '';
+        if (!empty($whereConditions)) {
+            $whereClause = 'WHERE ' . implode(' AND ', $whereConditions);
+        }
+
+        // Déterminer l'ordre de tri
+        $orderByClause = 'ORDER BY created_at DESC'; // Défaut
+        if ($sort !== null && count($sort) === 2) {
+            $field = $sort[0];
+            $direction = strtoupper($sort[1]);
+
+            // Valider que la direction est soit ASC soit DESC
+            if ($direction === 'ASC' || $direction === 'DESC') {
+                // Pour l'instant, on autorise seulement certains champs pour des raisons de sécurité
+                $allowedFields = ['id', 'number', 'client_id', 'status', 'total_amount', 'created_at', 'updated_at'];
+                if (in_array($field, $allowedFields)) {
+                    $orderByClause = "ORDER BY $field $direction";
+                }
+            }
+        }
+
+        $sql = "SELECT * FROM orders $whereClause $orderByClause LIMIT ? OFFSET ?";
+        $parameters[] = $limit;
+        $parameters[] = $offset;
+
+        // Déterminer les types de paramètres
+        $types = array_fill(0, count($parameters) - 2, ParameterType::STRING); // Pour les filtres
+        $types[] = ParameterType::INTEGER; // LIMIT
+        $types[] = ParameterType::INTEGER; // OFFSET
+
+        $rows = $this->connection->fetchAllAssociative($sql, $parameters, $types);
 
         return $this->hydrateCollection($rows);
     }
 
     /**
+     * Count all orders with optional filtering.
+     *
      * @throws Exception
      */
-    public function countAll(): int
+    public function countAll(array $filters = []): int
     {
-        return (int) $this->connection->fetchOne('SELECT COUNT(*) FROM orders');
+        // Construire la requête WHERE dynamique basée sur les filtres
+        $whereConditions = [];
+        $parameters = [];
+
+        foreach ($filters as $field => $value) {
+            // Pour l'instant, on supporte seulement l'égalité exacte
+            $whereConditions[] = "$field = ?";
+            $parameters[] = $value;
+        }
+
+        $whereClause = '';
+        if (!empty($whereConditions)) {
+            $whereClause = 'WHERE ' . implode(' AND ', $whereConditions);
+        }
+
+        $sql = "SELECT COUNT(*) FROM orders $whereClause";
+
+        // Déterminer les types de paramètres (tous des chaînes pour l'instant)
+        $types = array_fill(0, count($parameters), ParameterType::STRING);
+
+        return (int) $this->connection->fetchOne($sql, $parameters, $types);
     }
 
     /**

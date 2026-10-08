@@ -8,6 +8,7 @@ use App\Application\UseCase\Client\GetClientUseCase;
 use App\Application\UseCase\Client\ListClientsUseCase;
 use App\Presentation\DTO\Request\CreateClientDTO;
 use App\Presentation\DTO\Request\PaginationDTO;
+use App\Presentation\Http\RequestParser;
 use App\Presentation\Response\ApiResponse;
 use App\Presentation\Transformer\ResourceTransformer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -24,6 +25,7 @@ final class ClientController extends AbstractController
         private readonly CreateClientUseCase  $createClient,
         private readonly GetClientUseCase     $getClient,
         private readonly DisableClientUseCase $disableClient,
+        private readonly RequestParser       $parser,
     ) {}
 
     #[Route('', name: 'list', methods: ['GET'])]
@@ -31,8 +33,11 @@ final class ClientController extends AbstractController
     {
         $pagination = new PaginationDTO(
             page: (int) $request->query->get('page', 1),
-            limit: (int) $request->query->get('limit', 10)
+            limit: (int) $request->query->get('limit', 10),
+            sort: $request->query->get('sort', null),
+            filters: json_decode($request->query->get('filters', '{}'), true) ?? []
         );
+
         $result = $this->listClients->execute($pagination);
 
         return ApiResponse::paginated(
@@ -71,6 +76,9 @@ final class ClientController extends AbstractController
     {
         $this->disableClient->execute($id);
 
-        return ApiResponse::success(null, 'Client désactivé avec succès.');
+        return ApiResponse::success(
+            null,
+            'Client désactivé avec succès.'
+        );
     }
 }

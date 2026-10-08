@@ -14,8 +14,13 @@ final readonly class ListProductsUseCase
 
     public function execute(PaginationDTO $pagination): array
     {
-        $products = $this->productRepository->findAll($pagination->page, $pagination->limit);
-        $total    = $this->productRepository->countAll();
+        $products = $this->productRepository->findAll(
+            $pagination->page,
+            $pagination->limit,
+            $pagination->getSort(),
+            $pagination->filters
+        );
+        $total    = $this->productRepository->countAll($pagination->filters);
 
         return [
             'items'       => $products,
@@ -26,4 +31,3 @@ final readonly class ListProductsUseCase
         ];
     }
 }
-

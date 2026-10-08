@@ -14,8 +14,13 @@ final readonly class ListInvoicesUseCase
 
     public function execute(PaginationDTO $pagination): array
     {
-        $invoices = $this->invoiceRepository->findAll($pagination->page, $pagination->limit);
-        $total    = $this->invoiceRepository->countAll();
+        $invoices = $this->invoiceRepository->findAll(
+            $pagination->page,
+            $pagination->limit,
+            $pagination->getSort(),
+            $pagination->filters
+        );
+        $total    = $this->invoiceRepository->countAll($pagination->filters);
 
         return [
             'items'       => $invoices,
@@ -26,4 +31,3 @@ final readonly class ListInvoicesUseCase
         ];
     }
 }
-

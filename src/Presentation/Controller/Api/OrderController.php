@@ -33,7 +33,9 @@ final class OrderController extends AbstractController
     {
         $pagination = new PaginationDTO(
             page: (int) $request->query->get('page', 1),
-            limit: (int) $request->query->get('limit', 10)
+            limit: (int) $request->query->get('limit', 10),
+            sort: $request->query->get('sort', null),
+            filters: json_decode($request->query->get('filters', '{}'), true) ?? []
         );
 
         $result = $this->listOrder->execute($pagination);

@@ -14,8 +14,13 @@ final readonly class ListOrdersUseCase
 
     public function execute(PaginationDTO $pagination): array
     {
-        $orders = $this->orderRepository->findAll($pagination->page, $pagination->limit);
-        $total    = $this->orderRepository->countAll();
+        $orders = $this->orderRepository->findAll(
+            $pagination->page,
+            $pagination->limit,
+            $pagination->getSort(),
+            $pagination->filters
+        );
+        $total    = $this->orderRepository->countAll($pagination->filters);
 
         return [
             'items'       => $orders,
@@ -26,4 +31,3 @@ final readonly class ListOrdersUseCase
         ];
     }
 }
-
