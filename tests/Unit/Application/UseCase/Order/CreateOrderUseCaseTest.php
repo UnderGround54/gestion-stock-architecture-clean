@@ -3,6 +3,7 @@
 namespace App\Tests\Unit\Application\UseCase\Order;
 
 use App\Application\Factory\OrderFactory;
+use App\Application\Transaction\TransactionManagerInterface;
 use App\Application\UseCase\Order\CreateOrderUseCase;
 use App\Domain\Event\OrderCreatedEvent;
 use App\Domain\Exception\ClientNotFoundException;
@@ -44,6 +45,9 @@ final class CreateOrderUseCaseTest extends TestCase
         $this->productRepository = $this->createMock(ProductRepositoryInterface::class);
         $this->eventDispatcher   = $this->createMock(EventDispatcherInterface::class);
         $this->stockService      = $this->createMock(StockService::class);
+        $transactionManager      = $this->createMock(TransactionManagerInterface::class);
+        $transactionManager->method('transactional')
+            ->willReturnCallback(static fn (callable $callback) => $callback());
 
         $idGenerator  = $this->createIdGenerator();
         $orderFactory = new OrderFactory($idGenerator);
@@ -54,7 +58,8 @@ final class CreateOrderUseCaseTest extends TestCase
             $this->productRepository,
             $this->eventDispatcher,
             $orderFactory,
-            $this->stockService
+            $this->stockService,
+            $transactionManager,
         );
     }
 
