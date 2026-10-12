@@ -232,4 +232,5 @@ Content-Type: application/json
 - **Client** : email unique, validation format email
 - **Order** : doit avoir au moins une ligne, produit doit être disponible, transitions de statut strictes (EN_ATTENTE → CONFIRMEE → EXPEDIEE → LIVREE)
 - **Invoice** : générée uniquement pour orders CONFIRMEES, pas de double facturation, détection retard automatique
+
 ---
